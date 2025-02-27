@@ -1,0 +1,17 @@
+/* footer.css */
+footer {
+    background-color: #f8f9fa;  /* Color de fondo claro */
+    padding: 20px 0;
+}
+
+footer .text-uppercase {
+    color: #343a40;  /* Color de los títulos */
+}
+
+footer .text-dark {
+    color: #495057;  /* Color de los enlaces */
+}
+
+footer .text-center {
+    text-align: center;
+}
