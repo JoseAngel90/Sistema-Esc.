@@ -8,109 +8,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pase de Lista</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f0f8ff;
-        }
-
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .table th, .table td {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .table-container {
-            margin-top: 20px;
-        }
-
-        .btn-success {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
-
-        .form-select {
-            width: 100%;
-        }
-
-        .alert {
-            margin-top: 20px;
-        }
-
-        .header {
-            font-size: 2rem;
-            color: #007bff;
-            margin-bottom: 25px;
-        }
-
-        .indicator {
-            font-size: 0.9rem;
-            color: white;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .presente {
-            background-color: #28a745;
-        }
-
-        .ausente {
-            background-color: #dc3545;
-        }
-
-        .empty-list {
-            text-align: center;
-            font-size: 1.2rem;
-            color: #dc3545;
-            margin-top: 20px;
-        }
-
-        .btn-justificante {
-            background-color: #ffc107;
-            border-color: #ffc107;
-        }
-
-        .btn-justificante:hover {
-            background-color: #e0a800;
-            border-color: #d39e00;
-        }
-
-        .filters-container {
-            margin-top: 20px;
-        }
-
-        .form-group {
-            margin-right: 15px;
-        }
-
-        .search-container {
-            max-width: 500px;
-        }
-    </style>
 </head>
-<body>
+<body class="bg-light">
 
     <div class="container mt-5">
-        <div class="card p-4">
-            <h1 class="text-center mb-4 header">Pase de Lista</h1>
+        <div class="card shadow-sm rounded-3 p-4">
+            <h1 class="text-center mb-4 text-primary">Pase de Lista</h1>
+
+             <!-- Advertencia -->
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> Asegúrese de ingresar los datos correctos para evitar errores.
+    </div>
 
             <!-- Filtros y búsqueda -->
-            <div class="filters-container d-flex justify-content-between align-items-center mb-4">
-                <div class="search-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="w-50">
                     <input type="text" id="searchInput" class="form-control" placeholder="Buscar alumno" onkeyup="searchTable()">
                 </div>
-                <div class="d-flex">
-                    <div class="form-group mx-2">
-                        <select id="gradoFilter" class="form-select" onchange="filterByGroupAndGrade()">
+                <div class="d-flex w-50 justify-content-end">
+                    <div class="form-group mx-2 w-50">
+                        <select id="gradoFilter" class="form-select" onchange="filterByGroupAndGrade()" disabled>
                             <option value="">Seleccionar Grado</option>
                             @foreach($alumnos->pluck('grado')->unique() as $grado)
                                 <option value="{{ $grado }}">{{ $grado }}</option>
@@ -118,8 +35,8 @@
                         </select>
                     </div>
 
-                    <div class="form-group mx-2">
-                        <select id="groupFilter" class="form-select" onchange="filterByGroupAndGrade()">
+                    <div class="form-group mx-2 w-50">
+                        <select id="groupFilter" class="form-select" onchange="filterByGroupAndGrade()" disabled>
                             <option value="">Seleccionar Grupo</option>
                             @foreach($alumnos->pluck('grupo')->unique() as $grupo)
                                 <option value="{{ $grupo }}">{{ $grupo }}</option>
@@ -137,8 +54,8 @@
 
             <form action="{{ route('pase.lista.store') }}" method="POST">
                 @csrf
-                <div class="table-container">
-                    <table class="table table-bordered table-hover table-striped">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
                         <thead class="table-primary">
                             <tr>
                                 <th>#</th>
@@ -159,7 +76,7 @@
                                     <td>{{ $alumno->grado }}</td>
                                     <td>{{ $alumno->grupo }}</td>
                                     <td>
-                                        <input type="date" name="fecha[{{ $alumno->id }}]" class="form-control fecha" value="{{ now()->format('Y-m-d') }}" readonly>
+                                        <input type="date" name="fecha[{{ $alumno->id }}]" class="form-control" value="{{ now()->format('Y-m-d') }}" readonly>
                                     </td>
                                     <td>
                                         <select name="asistencia[{{ $alumno->id }}]" class="form-select">
@@ -174,20 +91,20 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-justificante" onclick="toggleDateEditability({{ $alumno->id }})">Justificante</button>
+                                        <button type="button" class="btn btn-warning btn-sm" onclick="toggleDateEditability({{ $alumno->id }})">Justificante</button>
                                     </td>
                                     <td>
-                                    @php
-                                         $asistencia = $asistencias->where('alumno_id', $alumno->id)->first();
-                                    @endphp
+                                        @php
+                                             $asistencia = $asistencias->where('alumno_id', $alumno->id)->first();
+                                        @endphp
 
-                                    <div class="indicator mt-2 
-                                        @if($asistencia && $asistencia->asistencia == 'presente') 
-                                            presente 
+                                        <div class="badge 
+                                            @if($asistencia && $asistencia->asistencia == 'presente') 
+                                                bg-success 
                                             @elseif($asistencia && $asistencia->asistencia == 'ausente') 
-                                                ausente 
+                                                bg-danger 
                                             @else 
-                                                ausente 
+                                                bg-secondary 
                                             @endif">
                                             {{ $asistencia ? ucfirst($asistencia->asistencia) : 'Sin Registro' }}
                                         </div>
@@ -195,17 +112,19 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="empty-list">Lista vacía</td>
+                                    <td colspan="8" class="text-center text-danger">Lista vacía</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+                    <div id="noResults" class="text-center text-danger" style="display: none;">No hay alumnos registrados en este grado y grupo.
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
                     <button type="submit" class="btn btn-success">Guardar Asistencia</button>
-                    <a href="{{ route('home') }}" class="btn btn-secondary">Regresar al Inicio</a>
-                </div>
+                    <a href="{{ route('panel', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-secondary" onclick="return confirm('¿Está seguro de que desea regresar al panel? Asegúrese de haber guardado todos los cambios.')">Regresar al Panel</a>
+                    </div>
             </form>
         </div>
     </div>
@@ -229,6 +148,7 @@
                     }
                 }
             }
+            checkNoResults();
         }
 
         function filterByGroupAndGrade() {
@@ -247,6 +167,21 @@
                     row.style.display = "none";
                 }
             });
+            checkNoResults();
+        }
+
+        function checkNoResults() {
+            const rows = document.querySelectorAll('.alumno-row');
+            let visibleRows = 0;
+
+            rows.forEach(row => {
+                if (row.style.display !== "none") {
+                    visibleRows++;
+                }
+            });
+
+            const noResults = document.getElementById('noResults');
+            noResults.style.display = visibleRows === 0 ? "block" : "none";
         }
 
         function toggleDateEditability(alumnoId) {
@@ -256,6 +191,24 @@
                 fechaInput.focus();
             }
         }
+
+        // Ejecutar la función de filtrado al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const gradoFilter = document.getElementById('gradoFilter');
+            const groupFilter = document.getElementById('groupFilter');
+
+            // Seleccionar automáticamente el primer valor de los filtros
+            if (gradoFilter.options.length > 1) {
+                gradoFilter.selectedIndex = 1;
+                gradoFilter.disabled = true;
+            }
+            if (groupFilter.options.length > 1) {
+                groupFilter.selectedIndex = 1;
+                groupFilter.disabled = true;
+            }
+
+            filterByGroupAndGrade();
+        });
     </script>
 </body>
 </html>

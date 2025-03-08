@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class AlumnoController extends Controller
 {
     // Mostrar formulario de registro o edición de alumno
-    public function create($alumnoEdit = null)
+    public function create(Request $request, $alumnoEdit = null)
     {
         // Si se pasa el ID de un alumno para editar, obtiene ese alumno
         $alumnoEdit = $alumnoEdit ? Alumno::find($alumnoEdit) : null;
@@ -16,8 +16,12 @@ class AlumnoController extends Controller
         // Obtener todos los alumnos registrados para el usuario autenticado
         $alumnos = auth()->user()->alumnos;
 
-        // Pasar los datos de los alumnos y el alumno a editar (si existe) a la vista
-        return view('Registrar_alumno', compact('alumnos', 'alumnoEdit'));
+        // Obtener los parámetros de grado y grupo
+        $grado = $request->input('grado');
+        $grupo = $request->input('grupo');
+
+        // Pasar los datos de los alumnos, el alumno a editar (si existe), grado y grupo a la vista
+        return view('Registrar_alumno', compact('alumnos', 'alumnoEdit', 'grado', 'grupo'));
     }
 
     // Guardar los datos del alumno
@@ -26,39 +30,51 @@ class AlumnoController extends Controller
         // Validación para los campos
         $request->validate([
             'nombre_alumno' => 'required|string|max:255',
-            'grado' => 'required|string|max:255',
-            'grupo' => 'required|string|max:255',
+            'grado' => 'required|string|max:2',
+            'grupo' => 'required|string|max:1',
             'hombre' => 'nullable|boolean',  // Cambiado a nullable para permitir que no se marque
             'mujer' => 'nullable|boolean',   // Cambiado a nullable para permitir que no se marque
         ]);
 
-        // Crear o actualizar el registro del alumno
-        if ($request->has('id')) {
-            // Actualizar el alumno existente
-            $alumno = Alumno::findOrFail($request->id);
-            $alumno->update([
-                'nombre_alumno' => $request->nombre_alumno,
-                'grado' => $request->grado,
-                'grupo' => $request->grupo,
-                'hombre' => $request->hombre ? 1 : 0,
-                'mujer' => $request->mujer ? 1 : 0,
-            ]);
-            $message = 'Alumno actualizado correctamente';
-        } else {
-            // Crear un nuevo alumno si no existe el ID
-            $alumno = new Alumno();
-            $alumno->nombre_alumno = $request->nombre_alumno;
-            $alumno->grado = $request->grado;
-            $alumno->grupo = $request->grupo;
-            $alumno->hombre = $request->hombre ? 1 : 0;
-            $alumno->mujer = $request->mujer ? 1 : 0;
-            $alumno->user_id = auth()->id(); // Asignar el user_id del usuario autenticado
-            $alumno->save();
-            $message = 'Alumno registrado correctamente';
-        }
+        // Crear un nuevo alumno
+        $alumno = new Alumno();
+        $alumno->nombre_alumno = $request->nombre_alumno;
+        $alumno->grado = $request->grado;
+        $alumno->grupo = $request->grupo;
+        $alumno->hombre = $request->hombre ? 1 : 0;
+        $alumno->mujer = $request->mujer ? 1 : 0;
+        $alumno->user_id = auth()->id(); // Asignar el user_id del usuario autenticado
+        $alumno->save();
 
-        // Redirigir con mensaje de éxito
-        return redirect()->route('alumnos.create')->with('success', $message);
+        $message = 'Alumno registrado correctamente';
+
+        // Redirigir con mensaje de éxito y pasar los parámetros de grado y grupo
+        return redirect()->route('alumnos.index', ['grado' => $request->grado, 'grupo' => $request->grupo])->with('success', $message);
+    }
+
+    // Actualizar los datos del alumno
+    public function update(Request $request, $id)
+    {
+        // Validación para los campos
+        $request->validate([
+            'nombre_alumno' => 'required|string|max:255',
+            'grado' => 'required|string|max:2',
+            'grupo' => 'required|string|max:1',
+            'hombre' => 'nullable|boolean',
+            'mujer' => 'nullable|boolean',
+        ]);
+
+        // Actualizar el alumno existente
+        $alumno = Alumno::findOrFail($id);
+        $alumno->update([
+            'nombre_alumno' => $request->nombre_alumno,
+            'grado' => $request->grado,
+            'grupo' => $request->grupo,
+            'hombre' => $request->hombre ? 1 : 0,
+            'mujer' => $request->mujer ? 1 : 0,
+        ]);
+
+        return redirect()->route('alumnos.index', ['grado' => $request->grado, 'grupo' => $request->grupo])->with('success', 'Alumno actualizado correctamente');
     }
 
     // Eliminar un alumno
@@ -67,16 +83,23 @@ class AlumnoController extends Controller
         // Asegurarse de que el alumno pertenece al usuario autenticado antes de eliminar
         if ($alumno->user_id == auth()->id()) {
             $alumno->delete();
-            return redirect()->route('alumnos.create')->with('success', 'Alumno eliminado correctamente');
+            return redirect()->route('alumnos.index', ['grado' => $alumno->grado, 'grupo' => $alumno->grupo])->with('success', 'Alumno eliminado correctamente');
         } else {
-            return redirect()->route('alumnos.create')->with('error', 'No tienes permiso para eliminar este alumno');
+            return redirect()->route('alumnos.index', ['grado' => $alumno->grado, 'grupo' => $alumno->grupo])->with('error', 'No tienes permiso para eliminar este alumno');
         }
     }
 
     // Mostrar todos los alumnos del usuario autenticado
-    public function index()
+    public function index(Request $request)
     {
-        $alumnos = auth()->user()->alumnos;
-        return view('alumnos.index', compact('alumnos'));
+        $grado = $request->input('grado');
+        $grupo = $request->input('grupo');
+
+        $alumnos = auth()->user()->alumnos()
+                        ->where('grado', $grado)
+                        ->where('grupo', $grupo)
+                        ->get();
+
+        return view('Registrar_alumno', compact('alumnos', 'grado', 'grupo'));
     }
 }
