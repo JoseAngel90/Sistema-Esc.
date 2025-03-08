@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\DatosGenerales; // Importación de DatosGenerales
 use App\Models\Alumno; // Importación de Alumno
+use App\Models\Grupo; // Importación de Grupo
 
 class User extends Authenticatable
 {
@@ -58,4 +58,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Alumno::class, 'user_id'); // 'user_id' debe coincidir con la columna en la tabla de alumnos
     }
+
+    /**
+     * Relación con Grupos (uno a muchos).
+     */
+    // Relación con Grupos
+    public function grupos()
+{
+    return $this->hasMany(Grupo::class);
+}
 }

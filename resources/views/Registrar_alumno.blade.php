@@ -4,9 +4,9 @@
 <div class="container my-5">
     <h1 class="mb-4">{{ isset($alumnoEdit) ? 'Editar Alumno' : 'Registrar Alumno' }}</h1>
 
-    <!-- Botón para regresar al home -->
+    <!-- Botón para regresar al panel -->
     <div class="mb-3">
-        <a href="{{ route('home') }}" class="btn btn-secondary">Regresar al Inicio</a>
+        <a href="{{ route('panel', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-secondary" id="regresarPanelBtn" onclick="return confirm('¿Estás seguro de que deseas regresar al panel?')">Regresar al Panel</a>
     </div>
 
     <!-- Mensajes de éxito o error -->
@@ -22,13 +22,18 @@
         </div>
     @endif
 
+    <!-- Advertencia -->
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> Asegúrese de ingresar los datos correctos para evitar errores.
+    </div>
+
     <!-- Formulario de registro o edición -->
-    <form action="{{ route('alumnos.store') }}" method="POST">
-        @csrf
-        @if(isset($alumnoEdit))
-            @method('POST')
-            <input type="hidden" name="id" value="{{ $alumnoEdit->id }}">
-        @endif
+    <form action="{{ isset($alumnoEdit) ? route('alumnos.update', $alumnoEdit->id) : route('alumnos.store') }}" method="POST">
+    @csrf
+    @if(isset($alumnoEdit))
+        @method('PUT')
+        <input type="hidden" name="id" value="{{ $alumnoEdit->id }}">
+    @endif
         <div class="card p-4 shadow-sm">
             <div class="form-group">
                 <label for="nombre_alumno" class="form-label">Nombre completo del Alumno</label>
@@ -37,12 +42,12 @@
 
             <div class="form-group">
                 <label for="grado" class="form-label">Grado</label>
-                <input type="text" id="grado" name="grado" class="form-control" value="{{ old('grado', $alumnoEdit->grado ?? '') }}" required maxlength="2" oninput="this.value = this.value.slice(0, 2).replace(/[^0-9]/g, '')">
+                <input type="text" id="grado" name="grado" class="form-control" value="{{ old('grado', $grado ?? $alumnoEdit->grado ?? '') }}" required maxlength="2" readonly>
             </div>
 
             <div class="form-group">
                 <label for="grupo" class="form-label">Grupo</label>
-                <input type="text" id="grupo" name="grupo" class="form-control" value="{{ old('grupo', $alumnoEdit->grupo ?? '') }}" required maxlength="1" pattern="[A-Za-z]" title="Solo se permite una letra en mayúsculas" oninput="this.value = this.value.toUpperCase()">
+                <input type="text" id="grupo" name="grupo" class="form-control" value="{{ old('grupo', $grupo ?? $alumnoEdit->grupo ?? '') }}" required maxlength="1" pattern="[A-Za-z]" title="Solo se permite una letra en mayúsculas" readonly>
             </div>
 
             <!-- Selector para sexo -->
@@ -66,9 +71,15 @@
 
     <h2 class="mb-4">Alumnos Registrados</h2>
 
+    <!-- Filtros de grado y grupo -->
+    <div class="mb-4 d-flex">
+        <input type="text" id="filterGrado" class="form-control me-2" placeholder="Filtrar por grado" value="{{ $grado }}" readonly>
+        <input type="text" id="filterGrupo" class="form-control" placeholder="Filtrar por grupo" value="{{ $grupo }}" readonly>
+    </div>
+
     <!-- Barra de búsqueda con botón -->
     <div class="mb-4 d-flex">
-        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre del alumno" onkeyup="searchTable()">
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre del alumno" onkeyup="filterTable()">
     </div>
 
     <!-- Mostrar lista de alumnos registrados -->
@@ -93,7 +104,7 @@
                             <td>{{ $alumno->hombre ? 'Hombre' : 'Mujer' }}</td>
                             <td>
                                 <!-- Enlace para editar -->
-                                <a href="{{ route('alumnos.create', $alumno->id) }}" class="btn btn-warning btn-sm">Editar</a>
+                                <a href="{{ route('alumnos.create', ['alumnoEdit' => $alumno->id, 'grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-warning btn-sm">Editar</a>
 
                                 <!-- Formulario para eliminar -->
                                 <form action="{{ route('alumnos.destroy', $alumno->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este alumno?')">
@@ -110,30 +121,46 @@
                     @endforelse
                 </tbody>
             </table>
+            <div id="noResults" class="text-center text-danger" style="display: none;">No hay alumnos registrados en este grado y grupo.</div>
         </div>
     </div>
 </div>
 
 <script>
-    // Función para filtrar la tabla
-    function searchTable() {
-        let input = document.getElementById('searchInput');
-        let filter = input.value.toUpperCase();
+    // Función para filtrar la tabla por grado, grupo y nombre
+    function filterTable() {
+        let filterGrado = document.getElementById('filterGrado').value.toUpperCase();
+        let filterGrupo = document.getElementById('filterGrupo').value.toUpperCase();
+        let filterNombre = document.getElementById('searchInput').value.toUpperCase();
         let table = document.getElementById('alumnosTable');
         let rows = table.getElementsByTagName('tr');
-        
+        let noResults = document.getElementById('noResults');
+        let found = false;
+
         for (let i = 1; i < rows.length; i++) {
-            let td = rows[i].getElementsByTagName('td')[0]; // Buscamos en la primera columna (Nombre)
-            if (td) {
-                let textValue = td.textContent || td.innerText;
-                if (textValue.toUpperCase().indexOf(filter) > -1) {
+            let tdGrado = rows[i].getElementsByTagName('td')[1]; // Columna de Grado
+            let tdGrupo = rows[i].getElementsByTagName('td')[2]; // Columna de Grupo
+            let tdNombre = rows[i].getElementsByTagName('td')[0]; // Columna de Nombre
+            if (tdGrado && tdGrupo && tdNombre) {
+                let textGrado = tdGrado.textContent || tdGrado.innerText;
+                let textGrupo = tdGrupo.textContent || tdGrupo.innerText;
+                let textNombre = tdNombre.textContent || tdNombre.innerText;
+                if (textGrado.toUpperCase().indexOf(filterGrado) > -1 &&
+                    textGrupo.toUpperCase().indexOf(filterGrupo) > -1 &&
+                    textNombre.toUpperCase().indexOf(filterNombre) > -1) {
                     rows[i].style.display = "";
+                    found = true;
                 } else {
                     rows[i].style.display = "none";
                 }
             }
         }
+
+        noResults.style.display = found ? "none" : "block";
     }
+
+    // Ejecutar la función de filtrado al cargar la página
+    document.addEventListener('DOMContentLoaded', filterTable);
 </script>
 
 @endsection

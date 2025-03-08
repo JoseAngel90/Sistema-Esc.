@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Alumno;
 use App\Models\DatosGenerales;
-
+use App\Models\Grupo;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
@@ -16,7 +18,7 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    }
+    }   
 
     /**
      * Show the application dashboard.
@@ -28,23 +30,17 @@ class HomeController extends Controller
         // Obtener los datos generales del usuario autenticado
         $datosGenerales = auth()->user()->datosGeneralesEscuela;
 
-        // Contar el número de alumnos asociados al usuario
-        $numeroAlumnos = auth()->user()->alumnos()->count();
-        dd($numeroAlumnos); // Esto debería mostrar el número de alumnos en la pantalla
-        
+        // Obtener los grupos asociados al usuario autenticado
+        $grupos = Auth::user()->grupos()->get();
+        dd($grupos);
+        $grupos = Grupo::select('*')->get();
 
-        return view('home', compact('datosGenerales', 'numeroAlumnos'));
+        // Pasar las variables a la vista
+        return view('home', compact('datosGenerales'));
     }
 
-    // Método para actualizar el número de alumnos (si lo necesitas)
-    public function updateNumeroAlumnos(Request $request)
-    {
-        // Lógica para actualizar el número de alumnos (si lo necesitas)
-        // Esto podría involucrar la creación/eliminación de registros en la base de datos
+    use Exception;
 
-        return response()->json([
-            'numero_alumnos' => Alumno::count(), // Regresa el nuevo número de alumnos
-        ]);
-    }
-    
+
+
 }
