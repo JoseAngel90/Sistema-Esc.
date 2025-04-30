@@ -3,20 +3,38 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class ForgotPasswordController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Password Reset Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller is responsible for handling password reset emails and
-    | includes a trait which assists in sending these notifications from
-    | your application to your users. Feel free to explore this trait.
-    |
-    */
+    public function showLinkRequestForm()
+    {
+        return view('auth.passwords.email');
+    }
 
-    use SendsPasswordResetEmails;
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = DB::table('users')->where('email', $request->email)->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'No se encontró un usuario con ese correo electrónico.']);
+        }
+
+        $newPassword = Str::random(8);
+        DB::table('users')->where('email', $request->email)->update(['password' => Hash::make($newPassword)]);
+
+        Mail::send('emails.password', ['password' => $newPassword], function ($message) use ($request) {
+            $message->to($request->email);
+            $message->subject('Nueva contraseña');
+        });
+
+        return back()->with('status', 'Se ha enviado una nueva contraseña a su correo electrónico.');
+    }
 }

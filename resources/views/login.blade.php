@@ -6,8 +6,8 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header text-center">
+            <div class="card shadow-lg">
+                <div class="card-header text-center bg-primary text-white">
                     <h4>Iniciar sesión</h4>
                 </div>
                 <div class="card-body">
@@ -36,17 +36,15 @@
                             <label class="form-check-label" for="remember">Recordarme</label>
                         </div>
 
-                        <div class="form-group mb-3 text-center">
-                            <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary fw-bold px-4">Iniciar sesión</button>
                         </div>
 
-                        <!-- <div class="form-group text-center">
-                            @if (Route::has('password.request'))
-                                <a class="btn btn-link" href="{{ route('password.request') }}">
-                                    ¿Olvidaste tu contraseña?
-                                </a>
-                            @endif
-                        </div> -->
+                        <!-- Botón de recuperación de contraseña -->
+                        <div class="text-center mt-3">
+                            <a href="{{ route('password.request') }}" class="btn btn-link text-danger fw-bold">¿Olvidaste tu contraseña?</a>
+                        </div>
+                        
                     </form>
                 </div>
             </div>
