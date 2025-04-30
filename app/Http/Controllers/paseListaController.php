@@ -1,37 +1,34 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Alumno; // Modelo de la tabla alumnos
-use App\Models\pasedelista; // Modelo de la tabla registro_asistencia
+use App\Models\Alumno;
+use App\Models\Pasedelista;
 
-class paseListaController extends Controller
+class PaseListaController extends Controller
 {
-    // Método para mostrar el pase de lista
     public function index(Request $request)
     {
         $grado = $request->input('grado');
         $grupo = $request->input('grupo');
 
+        // Filtrar alumnos por grado y grupo
         $alumnos = Alumno::where('user_id', auth()->id())
-                         ->when($grado, function ($query, $grado) {
-                             return $query->where('grado', $grado);
-                         })
-                         ->when($grupo, function ($query, $grupo) {
-                             return $query->where('grupo', $grupo);
-                         })
+                         ->when($grado, fn($q) => $q->where('grado', $grado))
+                         ->when($grupo, fn($q) => $q->where('grupo', $grupo))
                          ->get();
 
-        // Obtener solo las asistencias de hoy
-        $asistencias = pasedelista::whereIn('alumno_id', $alumnos->pluck('id'))
-                                   ->whereDate('fecha', now()->toDateString()) 
+        // Obtener asistencias
+        $asistencias = Pasedelista::whereIn('alumno_id', $alumnos->pluck('id'))
+                                   ->whereDate('fecha', now()->toDateString())
                                    ->where('user_id', auth()->id())
                                    ->get();
 
+        // Devolver la vista con los alumnos y asistencias
         return view('pasedelista', compact('alumnos', 'asistencias', 'grado', 'grupo'));
     }
 
-    // Método para guardar o actualizar el pase de lista
     public function store(Request $request)
     {
         $request->validate([
@@ -42,7 +39,7 @@ class paseListaController extends Controller
         $userId = auth()->id();
 
         foreach ($request->asistencia as $alumnoId => $asistencia) {
-            pasedelista::updateOrCreate(
+            Pasedelista::updateOrCreate(
                 [
                     'alumno_id' => $alumnoId,
                     'fecha' => $request->fecha[$alumnoId],
@@ -54,24 +51,18 @@ class paseListaController extends Controller
             );
         }
 
-        return redirect()->route('pase.lista')->with('success', 'Asistencia registrada correctamente.');
+        // Mantener los filtros al redirigir
+        return redirect()->route('pase.lista', [
+            'grado' => $request->input('grado'),
+            'grupo' => $request->input('grupo')
+        ])->with('success', 'Asistencia registrada correctamente.');
     }
 
-    // Método para mostrar los grados y grupos, y filtrar por ellos
     public function showPaseLista()
     {
-        // Obtener todos los grados y grupos únicos de los alumnos
-        $grados = Alumno::where('user_id', auth()->id())->pluck('grado')->unique(); // Obtener grados únicos del usuario autenticado
-        $grupos = Alumno::where('user_id', auth()->id())->pluck('grupo')->unique(); // Obtener grupos únicos del usuario autenticado
+        $grados = Alumno::where('user_id', auth()->id())->pluck('grado')->unique();
+        $grupos = Alumno::where('user_id', auth()->id())->pluck('grupo')->unique();
 
-        // Obtener los alumnos del usuario autenticado
-        $alumnos = Alumno::where('user_id', auth()->id())->get();
-
-        // Obtener las asistencias de los alumnos del usuario autenticado
-        $asistencias = pasedelista::whereIn('alumno_id', $alumnos->pluck('id'))
-                                   ->where('user_id', auth()->id())
-                                   ->get();
-
-        return view('pase_lista', compact('alumnos', 'asistencias', 'grados', 'grupos'));
+        return view('pase_lista', compact('grados', 'grupos'));
     }
 }

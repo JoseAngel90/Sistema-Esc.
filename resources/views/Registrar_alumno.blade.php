@@ -1,13 +1,77 @@
 @extends('layouts.app')
 
 @section('content')
+
+
+
+<hr class="my-5">
+
+    <h2 class="mb-4">Alumnos Registrados</h2>
+    <!-- Botón para regresar al panel -->
+    <div class="mb-3">
+        <a href="{{ route('panel', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-secondary" id="regresarPanelBtn">Regresar al Panel</a>
+    </div>
+
+    <!-- Filtros de grado y grupo -->
+    <div class="mb-4 d-flex">
+        <input type="text" id="filterGrado" class="form-control me-2" placeholder="Filtrar por grado" value="{{ $grado }}" readonly>
+        <input type="text" id="filterGrupo" class="form-control" placeholder="Filtrar por grupo" value="{{ $grupo }}" readonly>
+    </div>
+
+    <!-- Barra de búsqueda con botón -->
+    <div class="mb-4 d-flex">
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre del alumno" onkeyup="filterTable()">
+    </div>
+
+    <!-- Mostrar lista de alumnos registrados -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="alumnosTable">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Grado</th>
+                        <th>Grupo</th>
+                        <th>Género</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($alumnos as $alumno)
+                        <tr>
+                            <td>{{ $alumno->nombre_alumno }}</td>
+                            <td>{{ $alumno->grado }}</td>
+                            <td>{{ $alumno->grupo }}</td>
+                            <td>{{ $alumno->hombre ? 'Hombre' : 'Mujer' }}</td>
+                            <td>
+                                <!-- Enlace para editar -->
+                                <a href="{{ route('alumnos.create', ['alumnoEdit' => $alumno->id, 'grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-warning btn-sm">Editar</a>
+
+                                <!-- Formulario para eliminar -->
+                                <form action="{{ route('alumnos.destroy', $alumno->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este alumno?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center">Lista vacía</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div id="noResults" class="text-center text-danger" style="display: none;">No hay alumnos registrados en este grado y grupo.</div>
+        </div>
+    </div>
+</div>
+
+
 <div class="container my-5">
     <h1 class="mb-4">{{ isset($alumnoEdit) ? 'Editar Alumno' : 'Registrar Alumno' }}</h1>
 
-    <!-- Botón para regresar al panel -->
-    <div class="mb-3">
-        <a href="{{ route('panel', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-secondary" id="regresarPanelBtn" onclick="return confirm('¿Estás seguro de que deseas regresar al panel?')">Regresar al Panel</a>
-    </div>
+    
 
     <!-- Mensajes de éxito o error -->
     @if(session('success'))
@@ -67,64 +131,7 @@
         </div>
     </form>
 
-    <hr class="my-5">
-
-    <h2 class="mb-4">Alumnos Registrados</h2>
-
-    <!-- Filtros de grado y grupo -->
-    <div class="mb-4 d-flex">
-        <input type="text" id="filterGrado" class="form-control me-2" placeholder="Filtrar por grado" value="{{ $grado }}" readonly>
-        <input type="text" id="filterGrupo" class="form-control" placeholder="Filtrar por grupo" value="{{ $grupo }}" readonly>
-    </div>
-
-    <!-- Barra de búsqueda con botón -->
-    <div class="mb-4 d-flex">
-        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre del alumno" onkeyup="filterTable()">
-    </div>
-
-    <!-- Mostrar lista de alumnos registrados -->
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover" id="alumnosTable">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Grado</th>
-                        <th>Grupo</th>
-                        <th>Género</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($alumnos as $alumno)
-                        <tr>
-                            <td>{{ $alumno->nombre_alumno }}</td>
-                            <td>{{ $alumno->grado }}</td>
-                            <td>{{ $alumno->grupo }}</td>
-                            <td>{{ $alumno->hombre ? 'Hombre' : 'Mujer' }}</td>
-                            <td>
-                                <!-- Enlace para editar -->
-                                <a href="{{ route('alumnos.create', ['alumnoEdit' => $alumno->id, 'grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-warning btn-sm">Editar</a>
-
-                                <!-- Formulario para eliminar -->
-                                <form action="{{ route('alumnos.destroy', $alumno->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este alumno?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center">Lista vacía</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div id="noResults" class="text-center text-danger" style="display: none;">No hay alumnos registrados en este grado y grupo.</div>
-        </div>
-    </div>
-</div>
+    
 
 <script>
     // Función para filtrar la tabla por grado, grupo y nombre

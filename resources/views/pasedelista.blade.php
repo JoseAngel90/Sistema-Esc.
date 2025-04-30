@@ -15,10 +15,10 @@
         <div class="card shadow-sm rounded-3 p-4">
             <h1 class="text-center mb-4 text-primary">Pase de Lista</h1>
 
-             <!-- Advertencia -->
-    <div class="alert alert-warning">
-        <strong>Advertencia:</strong> Asegúrese de ingresar los datos correctos para evitar errores.
-    </div>
+            <!-- Advertencia -->
+            <div class="alert alert-warning">
+                <strong>Advertencia:</strong> Asegúrese de ingresar los datos correctos para evitar errores.
+            </div>
 
             <!-- Filtros y búsqueda -->
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -30,7 +30,7 @@
                         <select id="gradoFilter" class="form-select" onchange="filterByGroupAndGrade()" disabled>
                             <option value="">Seleccionar Grado</option>
                             @foreach($alumnos->pluck('grado')->unique() as $grado)
-                                <option value="{{ $grado }}">{{ $grado }}</option>
+                                <option value="{{ $grado }}" {{ $grado == $grado ? 'selected' : '' }}>{{ $grado }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -39,7 +39,7 @@
                         <select id="groupFilter" class="form-select" onchange="filterByGroupAndGrade()" disabled>
                             <option value="">Seleccionar Grupo</option>
                             @foreach($alumnos->pluck('grupo')->unique() as $grupo)
-                                <option value="{{ $grupo }}">{{ $grupo }}</option>
+                                <option value="{{ $grupo }}" {{ $grupo == $grupo ? 'selected' : '' }}>{{ $grupo }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -54,6 +54,8 @@
 
             <form action="{{ route('pase.lista.store') }}" method="POST">
                 @csrf
+                <input type="hidden" name="grado" value="{{ $grado }}">
+                <input type="hidden" name="grupo" value="{{ $grupo }}">
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered">
                         <thead class="table-primary">
@@ -117,14 +119,13 @@
                             @endforelse
                         </tbody>
                     </table>
-                    <div id="noResults" class="text-center text-danger" style="display: none;">No hay alumnos registrados en este grado y grupo.
-                    </div>
+                    <div id="noResults" class="text-center text-danger" style="display: none;">No hay alumnos registrados en este grado y grupo.</div>
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
                     <button type="submit" class="btn btn-success">Guardar Asistencia</button>
-                    <a href="{{ route('panel', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-secondary" onclick="return confirm('¿Está seguro de que desea regresar al panel? Asegúrese de haber guardado todos los cambios.')">Regresar al Panel</a>
-                    </div>
+                    <a href="{{ route('panel', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-secondary" >Regresar al Panel</a>
+                </div>
             </form>
         </div>
     </div>
@@ -196,14 +197,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const gradoFilter = document.getElementById('gradoFilter');
             const groupFilter = document.getElementById('groupFilter');
-
-            // Seleccionar automáticamente el primer valor de los filtros
-            if (gradoFilter.options.length > 1) {
-                gradoFilter.selectedIndex = 1;
+            
+            // Establecer los valores de los filtros si ya están presentes en la URL
+            if ("{{ $grado }}") {
+                gradoFilter.value = "{{ $grado }}";
                 gradoFilter.disabled = true;
             }
-            if (groupFilter.options.length > 1) {
-                groupFilter.selectedIndex = 1;
+            if ("{{ $grupo }}") {
+                groupFilter.value = "{{ $grupo }}";
                 groupFilter.disabled = true;
             }
 

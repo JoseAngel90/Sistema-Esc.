@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="container mt-5">
-
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
             {{ session('success') }}
@@ -10,127 +9,66 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <!-- Título centrado con tipografía moderna -->
     <div class="text-center mb-4">
-        <h2 class="text-primary fw-bold">Evaluación</h2>
-    </div>
-    
-    <div class="alert alert-warning">
-        <strong>Advertencia:</strong> Asegúrese de ingresar los datos correctos para evitar errores.
+        <h2 class="text-primary fw-bold" style="font-family: 'Roboto', sans-serif; font-size: 2rem; letter-spacing: 2px;">Evaluación</h2>
     </div>
 
-    <div class="mb-4">
-        <form method="GET" action="{{ route('evaluacion') }}">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="grado" class="form-label">Grado</label>
-                    <input type="text" id="grado" name="grado" class="form-control" value="{{ request('grado') }}" readonly>
-                </div>
-                <div class="col-md-6">
-                    <label for="grupo" class="form-label">Grupo</label>
-                    <input type="text" id="grupo" name="grupo" class="form-control" value="{{ request('grupo') }}" readonly>
-                </div>
-            </div>
-        </form>
+    <!-- Botón de acción con estilo minimalista utilizando Bootstrap -->
+    <div class="mb-4 text-center">
+        <a id="btnIr" href="{{ route('CalificarCotejo', ['grado' => request('grado'), 'grupo' => request('grupo')]) }}" class="btn btn-primary btn-lg" style="border-radius: 25px; padding: 12px 30px; font-size: 1.2rem;">
+            IR A CALIFICAR COTEJO
+        </a>
     </div>
 
-    <div class="mb-4">
-        <label for="evaluacion_general" class="form-label text-muted">Evaluación General (0% del 100%)</label>
-        <input type="number" id="evaluacion_general" class="form-control" placeholder="Ingrese el porcentaje total" value="100">
-    </div>
+    <!-- Botón para regresar con un diseño simple pero elegante -->
+    <div class="text-center">
+    <a href="{{ route('panel', ['grado' => $gradoFiltro, 'grupo' => $grupoFiltro]) }}" class="btn btn-secondary btn-lg" style="border-radius: 25px; padding: 12px 30px; font-size: 1.2rem;">
+        <i class="bi bi-arrow-left-circle"></i> Regresar al Panel
+    </a>
+</div>
 
-    <form action="{{ route('guardar.calificaciones') }}" method="POST">
-        @csrf
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm text-center">
-                <thead class="bg-light">
-                    <tr>
-                        <th></th>
-                        <th></th>
-                        <th><input type="text" class="form-control text-center fw-bold" value="Nombre Evaluación" readonly></th>
-                        <th><input type="text" class="form-control text-center fw-bold" value="Nombre Evaluación" readonly></th>
-                        <th><input type="text" class="form-control text-center fw-bold" value="Nombre Evaluación" readonly></th>
-                        <th><input type="text" class="form-control text-center fw-bold" value="Nombre Evaluación" readonly></th>
-                        <th class="bg-success text-white">Calificación Total</th>
-                    </tr>
-                    <tr class="bg-light">
-                        <th colspan="2" class="fw-bold text-muted">Porcentaje ()</th>
-                        <th><input type="number" class="form-control text-center peso-ponderacion" value="25"></th>
-                        <th><input type="number" class="form-control text-center peso-ponderacion" value="25"></th>
-                        <th><input type="number" class="form-control text-center peso-ponderacion" value="25"></th>
-                        <th><input type="number" class="form-control text-center peso-ponderacion" value="25"></th>
-                        <th class="bg-white"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if(isset($alumnos) && $alumnos->isNotEmpty())
-                        @foreach ($alumnos as $index => $alumno)
-                            <tr class="{{ $index % 2 == 0 ? 'bg-light' : 'bg-white' }} ">
-                                <td class="fw-bold text-primary">{{ $index + 1 }}</td>
-                                <td>
-                                    <input type="hidden" name="calificaciones[{{ $index }}][alumno_id]" value="{{ $alumno->id }}">
-                                    <input type="text" class="form-control text-dark fw-bold" value="{{ $alumno->nombre_alumno }}" disabled>
-                                </td>
-                                <td><input type="number" class="form-control text-center ponderacion" name="calificaciones[{{ $index }}][ponderacion1]" value="{{ $alumno->ponderacion1 ?? '' }}" required></td>
-                                <td><input type="number" class="form-control text-center ponderacion" name="calificaciones[{{ $index }}][ponderacion2]" value="{{ $alumno->ponderacion2 ?? '' }}" required></td>
-                                <td><input type="number" class="form-control text-center ponderacion" name="calificaciones[{{ $index }}][ponderacion3]" value="{{ $alumno->ponderacion3 ?? '' }}" required></td>
-                                <td><input type="number" class="form-control text-center ponderacion" name="calificaciones[{{ $index }}][ponderacion4]" value="{{ $alumno->ponderacion4 ?? '' }}" required></td>
-                                <td><input type="number" class="form-control text-center fw-bold calificacion-total" name="calificaciones[{{ $index }}][calificacion]" value="{{ $alumno->calificacion ?? '' }}" readonly></td>
-                            </tr>
-                        @endforeach
-                    @else
-                        <tr>
-                            <td colspan="7" class="text-center text-danger">No hay alumnos registrados.</td>
-                        </tr>
-                    @endif
-                </tbody>
-            </table>
-        </div>
-
-        <div class="d-flex justify-content-end mt-4">
-            <a href="{{ route('panel', ['grado' => $gradoFiltro ?? 'valor_default', 'grupo' => $grupoFiltro ?? 'valor_default']) }}" 
-               class="btn btn-secondary me-3" 
-               onclick="return confirmarRegresoPanel()">Regresar al Panel</a>
-            <button type="submit" class="btn btn-success">Guardar</button>
-        </div>
-    </form>
 
 </div>
 
-<script>
-    function confirmarRegresoPanel() {
-        return confirm('⚠️ Advertencia: ¿Estás seguro de que deseas regresar al panel? Los cambios no guardados se perderán.');
+<!-- Estilos adicionales para mejorar la estética -->
+<style>
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f7f7f7;
+        color: #333;
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        let evaluacionGeneralInput = document.getElementById('evaluacion_general');
-        let pesos = document.querySelectorAll('.peso-ponderacion');
-
-        function actualizarCalificaciones() {
-            let evaluacionGeneral = parseFloat(evaluacionGeneralInput.value) || 100;
-
-            document.querySelectorAll('.ponderacion').forEach(input => {
-                input.addEventListener('input', function() {
-                    let row = this.closest('tr');
-                    let ponderaciones = row.querySelectorAll('.ponderacion');
-                    let ponderacionesPesos = document.querySelectorAll('.peso-ponderacion');
-                    let total = 0, pesoTotal = 0;
-
-                    ponderaciones.forEach((p, index) => {
-                        let valor = parseFloat(p.value) || 0;
-                        let peso = parseFloat(ponderacionesPesos[index].value) || 0;
-                        total += valor * (peso / 100);
-                        pesoTotal += peso;
-                    });
-
-                    let calificacionTotal = (total / pesoTotal) * evaluacionGeneral;
-                    row.querySelector('.calificacion-total').value = calificacionTotal.toFixed(2);
-                });
-            });
-        }
-
-        evaluacionGeneralInput.addEventListener('input', actualizarCalificaciones);
-        pesos.forEach(input => input.addEventListener('input', actualizarCalificaciones));
-        actualizarCalificaciones();
-    });
-</script>
+    .container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+    }
+    .btn {
+        transition: transform 0.2s ease;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+    .alert {
+        font-size: 1.1rem;
+        border-radius: 10px;
+        padding: 15px;
+    }
+    .alert-success {
+        background-color: #e8f9e8;
+        color: #4CAF50;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #d9534f;
+    }
+</style>
 @endsection

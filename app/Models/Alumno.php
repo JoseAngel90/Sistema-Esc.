@@ -44,5 +44,31 @@ class Alumno extends Model
         'mujer',
     ];
 
+    public function calificarCotejo()
+    {
+        return $this->hasMany(CalificarCotejo::class, 'alumno_id');
+    }
+
+    public function calificaciones2()
+    {
+        return $this->hasMany(Calificaciones2::class, 'alumno_id');
+    }
+
+    public function calificaciones3()
+    {
+        return $this->hasMany(Calificaciones3::class, 'alumno_id');
+    }
+
+    public function calificaciones4()
+    {
+        return $this->hasMany(Calificaciones4::class, 'alumno_id');
+    }
+
+    public function calificaciones5()
+    {
+        return $this->hasMany(Calificaciones5::class, 'alumno_id');
+    }
+
+    
     
 }

@@ -8,51 +8,51 @@
     <p class="text-center">Administrador: {{ Auth::user()->name }}</p>
 </div>
 <style>
-    /* Configuración del contenedor con Grid */
     .grid-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Disposición automática con columnas mínimas de 200px */
-        grid-gap: 20px; /* Espaciado entre elementos */
-        padding: 20px; /* Padding general */
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-gap: 20px;
+        padding: 20px;
     }
 
-    /* Estilos generales para los elementos de la cuadrícula */
     .grid-item {
-        background-color: #f0f0f0; /* Fondo gris claro */
+        background-color: #f0f0f0;
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         text-align: center;
-        transition: transform 0.3s ease, background-color 0.3s ease; /* Efecto de animación */
+        transition: transform 0.3s ease, background-color 0.3s ease;
     }
 
     .grid-item:hover {
-        transform: scale(1.05); /* Efecto de hover */
-        background-color: #e0e0e0; /* Cambio de color al hacer hover */
+        transform: scale(1.05);
+        background-color: #e0e0e0;
     }
 
-    /* Estilos para el encabezado */
-    h1 {
+    h1, .grupo-titulo {
         color: #333;
+    }
+
+    h1 {
         font-size: 2rem;
     }
 
     .grupo-titulo {
         font-size: 1.5rem;
-        color: #333;
     }
 
-    /* Animaciones para mostrar/ocultar secciones */
     .fade {
         opacity: 0;
-        transition: opacity 0.5s ease-in-out;
+        transition: opacity 0.5s ease-in-out, max-height 0.5s ease-in-out;
+        max-height: 0;
+        overflow: hidden;
     }
 
     .fade.show {
         opacity: 1;
+        max-height: 1000px;
     }
 
-    /* Animaciones para botones */
     .btn {
         transition: background-color 0.3s ease, transform 0.3s ease;
     }
@@ -66,21 +66,28 @@
     <div class="row justify-content-center">
         <div class="col-12">
             <!-- Mostrar mensajes de éxito -->
-            @if(session('success'))
-                <div class="alert alert-success fade show">
-                    {{ session('success') }}
-                </div>
+            @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
             @endif
 
-            <!-- Mostrar errores si existen -->
-            @if ($errors->any())
-                <div class="alert alert-danger fade show">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+            @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+
+            @if(session('nuevoGrupo'))
+            <div class="alert alert-info">
+                Nuevo grupo creado: {{ session('nuevoGrupo') }}
+            </div>
+            @endif
+
+            @if(session('grupo_eliminado'))
+            <div class="alert alert-warning">
+                El grupo con ID {{ session('grupo_eliminado') }} ha sido eliminado.
+            </div>
             @endif
 
             <!-- Crear grupo -->
@@ -101,20 +108,28 @@
                             @csrf
                             <div class="form-group">
                                 <label for="grado">Grado</label>
-                                <input type="number" name="grado" class="form-control" placeholder="Ejemplo: 1" required min="1" step="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <input type="text" name="grado" class="form-control" placeholder="Ejemplo: 1" required 
+                                    maxlength="1" 
+                                    oninput="this.value = this.value.replace(/[^1-9]/g, '')">
                             </div>
                             <div class="form-group">
                                 <label for="grupo">Grupo</label>
-                                <input type="text" name="grupo" class="form-control" placeholder="Ejemplo: A" required oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
+                                <input type="text" name="grupo" class="form-control" placeholder="Ejemplo: A" required 
+                                    maxlength="1"
+                                    oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                             </div>
                             <div class="d-flex justify-content-between">
-                                <button type="submit" class="btn btn-success mt-2" onclick="alert('Grupo guardado exitosamente')">Guardar Grupo</button>
+                                <button type="submit" class="btn btn-success mt-2">Guardar Grupo</button>
                                 <button type="button" class="btn btn-danger mt-2" id="cancelar">Cancelar</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
 
             <!-- Botón para mostrar los datos del grupo -->
             <div class="d-flex justify-content-center mb-4">
@@ -224,17 +239,9 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <!-- Enlace para ir al panel -->
                                         <a href="{{ route('panel', ['grado' => $grupo->grado, 'grupo' => $grupo->grupo]) }}" 
-                                            class="btn btn-secondary w-100 text-center grupo-btn" id="btn_{{ $grupo->id }}">
+                                            class="btn btn-primary w-100 text-center grupo-btn" id="btn_{{ $grupo->id }}">
                                             {{ $grupo->grado }} {{ $grupo->grupo }}
                                         </a>
-                                    </div>
-
-                                    <div class="mt-3 text-center">
-                                        <!-- Botón para cambiar el estado -->
-                                        <button class="btn {{ $grupo->activo ? 'btn-success' : 'btn-secondary' }} btn-sm w-100" 
-                                                onclick="toggleGroup({{ $grupo->id }})" id="toggleBtn_{{ $grupo->id }}">
-                                            {{ $grupo->activo ? 'Activado' : 'Desactivado' }}
-                                        </button>
                                     </div>
 
                                     <div class="mt-3">
@@ -261,23 +268,25 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+     document.addEventListener('DOMContentLoaded', function() {
         // Mostrar/Ocultar datos del grupo
         var mostrarDatosGrupoBtn = document.getElementById('mostrarDatosGrupo');
-        if (mostrarDatosGrupoBtn) {
+        var datosGrupo = document.getElementById('datosGrupo');
+
+        if (mostrarDatosGrupoBtn && datosGrupo) {
             mostrarDatosGrupoBtn.addEventListener('click', function() {
-                var datosGrupo = document.getElementById('datosGrupo');
                 datosGrupo.classList.toggle('show');
-                datosGrupo.style.display = datosGrupo.style.display === 'none' ? 'block' : 'none';
+                datosGrupo.style.display = datosGrupo.style.display === 'none' || datosGrupo.style.display === '' ? 'block' : 'none';
             });
         }
 
         // Mostrar el formulario de edición de datos generales
         var editButton = document.getElementById('editButton');
-        if (editButton) {
+        var editForm = document.getElementById('editForm');
+
+        if (editButton && editForm) {
             editButton.addEventListener('click', function() {
-                var editForm = document.getElementById('editForm');
-                editForm.classList.toggle('show');
+                editForm.classList.add('show');
                 editForm.style.display = 'block';
                 this.style.display = 'none';
             });
@@ -285,63 +294,36 @@
 
         // Cancelar edición de datos generales
         var cancelButton = document.getElementById('cancelButton');
-        if (cancelButton) {
+        if (cancelButton && editForm && editButton) {
             cancelButton.addEventListener('click', function() {
-                var editForm = document.getElementById('editForm');
-                editForm.classList.toggle('show');
+                editForm.classList.remove('show');
                 editForm.style.display = 'none';
-                document.getElementById('editButton').style.display = 'inline-block';
+                editButton.style.display = 'inline-block';
             });
         }
 
         // Mostrar/Ocultar formulario para crear grupo
         var mostrarFormularioBtn = document.getElementById('mostrarFormulario');
-        if (mostrarFormularioBtn) {
+        var formularioGrupo = document.getElementById('formularioGrupo');
+
+        if (mostrarFormularioBtn && formularioGrupo) {
             mostrarFormularioBtn.addEventListener('click', function() {
-                var formulario = document.getElementById('formularioGrupo');
-                formulario.classList.toggle('show');
-                formulario.style.display = formulario.style.display === 'none' ? 'block' : 'none';
-                this.style.display = formulario.style.display === 'none' ? 'block' : 'none';
+                var visible = formularioGrupo.style.display === 'block';
+                formularioGrupo.classList.toggle('show');
+                formularioGrupo.style.display = visible ? 'none' : 'block';
             });
         }
 
         // Cancelar creación de grupo
         var cancelarBtn = document.getElementById('cancelar');
-        if (cancelarBtn) {
+        if (cancelarBtn && formularioGrupo) {
             cancelarBtn.addEventListener('click', function() {
-                var formulario = document.getElementById('formularioGrupo');
-                formulario.classList.toggle('show');
-                formulario.style.display = 'none';
-                document.getElementById('mostrarFormulario').style.display = 'block';
+                formularioGrupo.classList.remove('show');
+                formularioGrupo.style.display = 'none';
             });
         }
     });
 
-    // Función para cambiar el estado de activación/desactivación de los grupos
-    function toggleGroup(grupoId) {
-        const grupoBtn = document.getElementById(`btn_${grupoId}`);
-        const toggleBtn = document.getElementById(`toggleBtn_${grupoId}`);
-
-        // Cambiar el estado entre "activado" y "desactivado"
-        if (toggleBtn.classList.contains('btn-success')) {
-            // Si el grupo está activado, desactivarlo
-            toggleBtn.classList.remove('btn-success');
-            toggleBtn.classList.add('btn-secondary');
-            toggleBtn.textContent = 'Desactivado';
-            grupoBtn.classList.add('disabled');
-            grupoBtn.removeAttribute('href'); // Desactivar el enlace
-
-                
-        } else {
-            // Si el grupo está desactivado, activarlo
-            toggleBtn.classList.remove('btn-secondary');
-            toggleBtn.classList.add('btn-success');
-            toggleBtn.textContent = 'Activado';
-            grupoBtn.classList.remove('disabled');
-            const grado = grupoBtn.dataset.grado;
-            const grupo = grupoBtn.dataset.grupo;
-            grupoBtn.href = `{{ url('panel') }}/${grado}/${grupo}`; // Cambia el URL de acuerdo a los datos
-        }
-    }
+    
 </script>
 @endsection
