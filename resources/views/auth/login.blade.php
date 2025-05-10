@@ -3,12 +3,19 @@
 @section('title', 'Iniciar sesion') <!-- Título para esta página -->
 
 @section('content')
+
+
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">{{ __('Iniciar sesion') }}</div>
                     <div class="card-body">
+                        @if (session('success'))
+                            <div class="alert alert-success">
+                                {{ session('success') }}
+                            </div>
+                        @endif
                         <form method="POST" action="{{ route('login') }}">
                             @csrf
                             <div class="mb-3">

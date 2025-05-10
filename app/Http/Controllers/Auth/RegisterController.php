@@ -4,9 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PendingUser; // Importar el modelo
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Mail\NewUserRegistered;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class RegisterController extends Controller
 {
@@ -50,7 +55,7 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
     }
@@ -63,10 +68,53 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $pendingUser = PendingUser::where('email', $data['email'])->first();
+
+        if ($pendingUser) {
+            return $pendingUser; // Si ya existe, devuelve el registro existente
+        }
+
+        return PendingUser::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+    }
+
+    /**
+     * Handle a registered user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function registered(Request $request, $user)
+    {
+        $pendingUser = PendingUser::where('email', $user->email)->first();
+
+        if ($pendingUser->wasRecentlyCreated) {
+            return redirect()->route('login')->with('success', 'Tu registro ha sido exitoso. Por favor, espera a que un administrador apruebe tu cuenta.');
+        }
+
+        return redirect()->route('login')->with('success', 'Tu registro ya estaba pendiente de aprobación. Por favor, espera a que un administrador lo revise.');
+    }
+
+    /**
+     * Register a new user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
+
+        // Crear el usuario pendiente
+        $user = $this->create($request->all());
+
+        // Redirigir con un mensaje de éxito
+        return $request->wantsJson()
+                    ? new JsonResponse(['message' => 'Registro exitoso. Por favor, espera aprobación.'], 201)
+                    : redirect()->route('login')->with('success', 'Tu registro ha sido exitoso. Por favor, espera a que un administrador apruebe tu cuenta.');
     }
 }

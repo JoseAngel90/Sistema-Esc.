@@ -114,6 +114,10 @@
                 font-size: 0.9rem;
             }
         }
+         .icon-hover:hover {
+        text-shadow: 0 0 8px #ffffff, 0 0 12px #00ffcc;
+        transition: text-shadow 0.3s ease;
+    }
     </style>
 </head>
 
@@ -183,15 +187,26 @@
                     <h5>Contacto</h5>
                     <p>Si tienes alguna pregunta o sugerencia, no dudes en ponerte en contacto con nosotros. Estamos aquí para ayudarte.</p>
                     <p><strong>Email:</strong> ruy.hernandez@gruposyscom.com.mx</p>
-                    <p><strong>Teléfono:</strong> 246-238-4111</p>
-                    <p><strong>Dirección:</strong> 65 Sucursal chiautempan: Manuel Saldaña Mte. No.10, Col. Centro Santa Ana Chiautempan Tlax.</p>
                 </div>
             </div>
         </div>
 
         <div class="text-center p-3 bg-dark text-white">
-            <p>© {{ date('Y') }} Mi Aplicación. Todos los derechos reservados.</p>
-            <p>Somos un equipo comprometido con el desarrollo de soluciones educativas de calidad.</p>
+            <p>© {{ date('Y') }} Raccorp <img src="{{ asset('racorp.png') }}" alt="Logo" class="img-fluid" width="25px">. Todos los derechos reservados.</p>
+            <p>Somos un equipo comprometido con el desarrollo de soluciones creativas y de calidad.</p>
+            <p>Contactanos.</p>
+            <div class="d-flex justify-content-center align-items-center">
+                <div class="me-3">
+                    <a class="text-white icon-hover" href="https://wa.me/2461265600" target="_blank">
+                        <i class="bi bi-whatsapp fs-4"></i>
+                    </a>
+                </div>
+                <div>
+                    <a class="text-white icon-hover" href="mailto:josexochitemol8363@gmail.com" target="_blank">
+                        <i class="bi bi-envelope fs-4"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 

@@ -13,6 +13,7 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\CalificarCotejoController;
 use App\Http\Controllers\ActasController;
+use App\Http\Controllers\AdministradorController;
 
 
 /*
@@ -94,6 +95,17 @@ Route::middleware(['auth'])->group(function () {
     // Ruta para guardar valores maximos
     Route::post('/guardar-elementos-correctos', [CalificarCotejoController::class, 'guardarElementosCorrectos'])->name('guardar.elementos.correctos');
 
+    //Ruta para el administrador
+    Route::get('/administrador', [AdministradorController::class, 'index'])->name('administrador');
+    Route::delete('/administrador/{id}', [AdministradorController::class, 'destroy'])->name('administrador.destroy');
+    Route::delete('/users/{id}', [AdministradorController::class, 'destroy'])->name('users.destroy');
+    Route::post('/administrador/approve/{id}', [AdministradorController::class, 'approve'])->name('users.approve');
 
+    // Ruta para recuperar contraseña
+    Route::post('/users/reset-password/{id}', [AdministradorController::class, 'resetPassword'])->name('users.resetPassword');
+});
 
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/administrador', [AdministradorController::class, 'index'])->name('administrador');
+    Route::post('/administradores', [AdministradorController::class, 'store'])->name('administradores.store');
 });
