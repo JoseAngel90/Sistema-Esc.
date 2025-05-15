@@ -66,20 +66,35 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \App\Models\User
      */
-    protected function create(array $data)
-    {
-        $pendingUser = PendingUser::where('email', $data['email'])->first();
+    
 
-        if ($pendingUser) {
-            return $pendingUser; // Si ya existe, devuelve el registro existente
-        }
 
-        return PendingUser::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+protected function create(array $data)
+{
+    $pendingUser = PendingUser::where('email', $data['email'])->first();
+
+    if ($pendingUser) {
+        return $pendingUser;
     }
+
+    $newPendingUser = PendingUser::create([
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'password' => Hash::make($data['password']),
+    ]);
+
+    // Enviar correo usando la plantilla Blade
+    Mail::send('emails.nuevo_registro', [
+        'name' => $data['name'],
+        'email' => $data['email'],
+    ], function ($message) {
+        $message->to('colegiodigital79@gmail.com')
+                ->subject('Nuevo registro en el sistema escolar')
+                ->from('no-reply@sistemaescolar.com', 'Sistema Escolar');
+    });
+
+    return $newPendingUser;
+}
 
     /**
      * Handle a registered user.

@@ -105,7 +105,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/reset-password/{id}', [AdministradorController::class, 'resetPassword'])->name('users.resetPassword');
 });
 
-Route::middleware(['auth', 'admin'])->group(function () {
+    Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/administrador', [AdministradorController::class, 'index'])->name('administrador');
     Route::post('/administradores', [AdministradorController::class, 'store'])->name('administradores.store');
+    Route::delete('/users/reject/{id}', [AdministradorController::class, 'reject'])->name('users.reject');
+    
+
 });

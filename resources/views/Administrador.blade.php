@@ -95,14 +95,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($pendingUsers as $pendingUser)
+                           @foreach($pendingUsers as $pendingUser)
                                 <tr>
                                     <td>{{ $pendingUser->name }}</td>
                                     <td>{{ $pendingUser->email }}</td>
                                     <td>
-                                        <form action="{{ route('users.approve', $pendingUser->id) }}" method="POST">
+                                        <form action="{{ route('users.approve', $pendingUser->id) }}" method="POST" style="display:inline;">
                                             @csrf
                                             <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
+                                        </form>
+                                        <form action="{{ route('users.reject', $pendingUser->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas rechazar este usuario?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
                                         </form>
                                     </td>
                                 </tr>

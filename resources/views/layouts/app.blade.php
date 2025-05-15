@@ -134,7 +134,7 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbar">
             <div class="container-fluid">
-                <img src="{{ asset('Prueba.png') }}" alt="Logo" class="img-fluid">
+                <img src="{{ asset('COLEGIODIGITAL_LOGO_PNG.png') }}" alt="Logo" class="img-fluid">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
