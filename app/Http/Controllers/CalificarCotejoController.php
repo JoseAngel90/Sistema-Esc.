@@ -74,7 +74,9 @@ class CalificarCotejoController extends Controller
         return view('CalificarCotejo', compact(
             'alumnos', 'grados', 'grupos', 'gradoFiltro', 'grupoFiltro', 'registro', 'calificacionesPorPestania'
         ));
+        
     }
+    
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,19 +84,23 @@ class CalificarCotejoController extends Controller
     // Guardar Rubro en la base de datos
     public function guardarRubro(Request $request)
 {
-    // Validar solo si se proporciona el valor
     $request->validate([
         'Rubro1' => 'nullable|numeric|min:0|max:100',
         'Rubro2' => 'nullable|numeric|min:0|max:100',
         'Rubro3' => 'nullable|numeric|min:0|max:100',
         'Rubro4' => 'nullable|numeric|min:0|max:100',
         'Rubro5' => 'nullable|numeric|min:0|max:100',
+        'nombreRubro1' => 'nullable|string|max:255',
+        'nombreRubro2' => 'nullable|string|max:255',
+        'nombreRubro3' => 'nullable|string|max:255',
+        'nombreRubro4' => 'nullable|string|max:255',
+        'nombreRubro5' => 'nullable|string|max:255',
+        'grado' => 'required',
+        'grupo' => 'required',
     ]);
 
-    // Obtener el usuario autenticado
     $usuario_id = Auth::id();
 
-    // Preparar solo los campos que tienen valor
     $data = [];
 
     if (!is_null($request->input('Rubro1'))) $data['rubro1'] = $request->input('Rubro1');
@@ -103,15 +109,26 @@ class CalificarCotejoController extends Controller
     if (!is_null($request->input('Rubro4'))) $data['rubro4'] = $request->input('Rubro4');
     if (!is_null($request->input('Rubro5'))) $data['rubro5'] = $request->input('Rubro5');
 
-    // Si no hay datos, no guardar nada
+    // Guardar los nombres de los criterios
+    if ($request->filled('nombreRubro1')) $data['nombre_rubro1'] = $request->input('nombreRubro1');
+    if ($request->filled('nombreRubro2')) $data['nombre_rubro2'] = $request->input('nombreRubro2');
+    if ($request->filled('nombreRubro3')) $data['nombre_rubro3'] = $request->input('nombreRubro3');
+    if ($request->filled('nombreRubro4')) $data['nombre_rubro4'] = $request->input('nombreRubro4');
+    if ($request->filled('nombreRubro5')) $data['nombre_rubro5'] = $request->input('nombreRubro5');
+
     if (empty($data)) {
         return redirect()->back()->with('error', 'No se ingresó ningún valor para guardar.');
     }
 
-    // Crear o actualizar el registro con solo los campos con valor
+    // Actualiza o crea el registro para el usuario, grado y grupo
     CalificarCotejo::updateOrCreate(
-        ['user_id' => $usuario_id],
+        [
+            'user_id' => $usuario_id,
+            'grado' => $request->input('grado'),
+            'grupo' => $request->input('grupo'),
+        ],
         $data
+        
     );
 
     return redirect()->back()->with('success', 'Rubro(s) guardado(s) correctamente.');
@@ -187,45 +204,43 @@ class CalificarCotejoController extends Controller
         foreach ($lista_alumnos_ids as $alumno_id) {
             $evaluacionAlumno = $evaluaciones[$alumno_id];
             $datosEvaluacion = [];
-    
-            // Determinar el número máximo de evaluaciones (5 para 'apoyo_p' y 3 para el resto)
+
             $maxEvaluaciones = ($tipoPestania === 'apoyo_p') ? 5 : 3;
-    
-            // Recorrer las evaluaciones y guardar los datos
+
             for ($i = 1; $i <= $maxEvaluaciones; $i++) {
                 $key = 'eval' . $i;
                 $campo = 'evaluacion_' . $i;
-    
+
                 $valor = $evaluacionAlumno[$key] ?? null;
                 $datosEvaluacion[$campo] = ($tipoPestania === 'apoyo_p' && $valor !== null) ? $valor * 100 : $valor;
-            }
-    
-            // Guardar los elementos correctos en el campo adecuado (valor_maximo1, valor_maximo2, etc.)
-            for ($i = 1; $i <= $maxEvaluaciones; $i++) {
-                $campoElementoCorrecto = 'valor_maximo' . $i;  // valor_maximo1, valor_maximo2, etc.
-                $elementosCorrectosValor = $elementosCorrectos[$alumno_id][$i] ?? null;  // Obtener el valor de elementos_correctos por evaluación
-    
-                if ($elementosCorrectosValor !== null) {
-                    $datosEvaluacion[$campoElementoCorrecto] = $elementosCorrectosValor;
+
+                // Solo actualiza el valor máximo si viene en el request
+                $campoElementoCorrecto = 'valor_maximo' . $i;
+                if (
+                    isset($elementosCorrectos[$alumno_id]) &&
+                    isset($elementosCorrectos[$alumno_id][$i]) &&
+                    isset($elementosCorrectos[$alumno_id][$i][$tipoPestania])
+                ) {
+                    $datosEvaluacion[$campoElementoCorrecto] = $elementosCorrectos[$alumno_id][$i][$tipoPestania];
                 }
             }
-    
+
             // Calcular el promedio si es necesario
             $valoresValidos = array_filter($datosEvaluacion, fn($valor) => $valor !== null);
             $promedio = count($valoresValidos) > 0 ? array_sum($valoresValidos) / count($valoresValidos) : null;
             $datosEvaluacion['Total'] = $promedio;
-    
+
             // Asignar el rubro correspondiente según el tipo de pestaña
             $nombreRubro = $rubros[$tipoPestania];
             $datosEvaluacion[$nombreRubro] = $calificarCotejo->$nombreRubro;
-    
+
             // Guardar la evaluación usando updateOrCreate
             CalificarCotejo::updateOrCreate(
                 [
                     'alumno_id' => $alumno_id,
                     'user_id' => auth()->id(),
                     'periodo' => now()->year,
-                    $campoPestania => $pestaniaIndex, // Aquí se guarda el valor correspondiente a la pestaña
+                    $campoPestania => 1, // Siempre 1 para cada pestaña por alumno, usuario y periodo
                 ],
                 $datosEvaluacion
             );
@@ -238,51 +253,51 @@ class CalificarCotejoController extends Controller
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public function guardarElementosCorrectos(Request $request)
 {
-    // Validación de los datos recibidos
     $request->validate([
         'alumnos' => 'required|array',
         'alumnos.*.id' => 'required|integer',
         'tipo_pestania' => 'required|string',
+        'pestania_index' => 'required|integer',
         'alumnos.*.evaluaciones' => 'required|array',
         'alumnos.*.evaluaciones.*.evaluacion' => 'required|integer',
         'alumnos.*.evaluaciones.*.elementos_correctos' => 'required|numeric',
     ]);
 
-    $userId = auth()->id();  // Obtener el ID del usuario autenticado
+    $userId = auth()->id();
+    $tipoPestania = $request->tipo_pestania;
+    $pestaniaIndex = $request->pestania_index;
 
-    // Iterar sobre cada alumno
     foreach ($request->alumnos as $alumno) {
         $alumnoId = $alumno['id'];
-
-        // Iterar sobre las evaluaciones de cada alumno
         foreach ($alumno['evaluaciones'] as $evaluacion) {
-            $campo = "valor_maximo" . $evaluacion['evaluacion'];  // Campo correspondiente a la evaluación
+            $campo = "valor_maximo" . $evaluacion['evaluacion'];
 
-            // Buscar si existe un registro con alumno_id, user_id y tipo_pestania
-            $existingRecord = CalificarCotejo::where([
+            // Buscar el registro correcto por pestaña y periodo
+            $existingRecord = \App\Models\CalificarCotejo::where([
                 'alumno_id' => $alumnoId,
                 'user_id' => $userId,
-                $request->tipo_pestania . '_id' => 1,  // Ajusta este valor según el tipo de pestaña
+                $tipoPestania . '_id' => $pestaniaIndex,
+                'periodo' => now()->year,
             ])->first();
 
-            // Si el registro existe, actualizarlo
             if ($existingRecord) {
+                // Actualiza el valor máximo
                 $existingRecord->update([
-                    $campo => $evaluacion['elementos_correctos'],  // Actualizar el valor correcto
+                    $campo => $evaluacion['elementos_correctos'],
                 ]);
             } else {
-                // Si el registro no existe, crearlo
-                CalificarCotejo::create([
+                // Si no existe, crea el registro con el valor máximo
+                \App\Models\CalificarCotejo::create([
                     'alumno_id' => $alumnoId,
                     'user_id' => $userId,
-                    $request->tipo_pestania . '_id' => 1,  // Ajusta este valor según el tipo de pestaña
-                    $campo => $evaluacion['elementos_correctos'],  // Guardar el valor correcto
+                    $tipoPestania . '_id' => $pestaniaIndex,
+                    'periodo' => now()->year,
+                    $campo => $evaluacion['elementos_correctos'],
                 ]);
             }
         }
     }
 
-    // Responder con éxito
     return response()->json(['success' => true]);
 }
 

@@ -14,6 +14,8 @@ use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\CalificarCotejoController;
 use App\Http\Controllers\ActasController;
 use App\Http\Controllers\AdministradorController;
+use App\Http\Controllers\EtiquetaRubroController;
+
 
 
 /*
@@ -52,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Ruta para las evaluaciones
     
-    Route::get('/Evaluaciones', [EvaluacionesController::class, 'index'])->name('evaluacion');
+Route::get('/404', [EvaluacionesController::class, 'index'])->name('erro.404');
     Route::post('/guardar-calificaciones', [EvaluacionesController::class, 'guardarCalificaciones'])->name('guardar.calificaciones');
     Route::post('/guardar-periodos', [EvaluacionesController::class, 'guardarPeriodos'])->name('guardar.periodos');
 
@@ -103,6 +105,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Ruta para recuperar contraseña
     Route::post('/users/reset-password/{id}', [AdministradorController::class, 'resetPassword'])->name('users.resetPassword');
+
+    // Ruta para guardar etiquetas de rubro
+    Route::post('/guardar-etiqueta', [EtiquetaRubroController::class, 'guardar'])->name('guardar.etiqueta');
+
 });
 
     Route::middleware(['auth', 'admin'])->group(function () {

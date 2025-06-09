@@ -32,6 +32,6 @@ class PanelController extends Controller
             ->exists();
     
         // Retornar la vista del panel con la información del grupo, la existencia de alumnos y los detalles del usuario
-        return view('panel', compact('grado', 'grupo', 'existenAlumnos', 'usuario'));
+        return view('Panel', compact('grado', 'grupo', 'existenAlumnos', 'usuario'));
     }
 }

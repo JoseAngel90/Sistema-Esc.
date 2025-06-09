@@ -58,13 +58,13 @@ public function approve($id)
 
     // Enviar correo al usuario aprobado
     \Mail::send('emails.aprobado', [
-        'name' => $pendingUser->name,
-        'email' => $pendingUser->email,
-    ], function ($message) use ($pendingUser) {
-        $message->to($pendingUser->email)
-                ->subject('¡Tu cuenta ha sido aprobada!')
-                ->from('no-reply@sistemaescolar.com', 'Sistema Escolar');
-    });
+    'name' => $pendingUser->name,
+    'email' => $pendingUser->email,
+], function ($message) use ($pendingUser) {
+    $message->to($pendingUser->email)
+            ->subject('¡Tu cuenta ha sido aprobada!')
+            ->from('AdminSistemaEscolar@sistemaescolar.colegiodigital.org', 'Colegio Digital');
+});
 
     // Eliminar el usuario de la tabla `pending_users`
     $pendingUser->delete();

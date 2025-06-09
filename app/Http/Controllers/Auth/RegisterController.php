@@ -85,13 +85,13 @@ protected function create(array $data)
 
     // Enviar correo usando la plantilla Blade
     Mail::send('emails.nuevo_registro', [
-        'name' => $data['name'],
-        'email' => $data['email'],
-    ], function ($message) {
-        $message->to('colegiodigital79@gmail.com')
-                ->subject('Nuevo registro en el sistema escolar')
-                ->from('no-reply@sistemaescolar.com', 'Sistema Escolar');
-    });
+    'name' => $data['name'],
+    'email' => $data['email'],
+], function ($message) {
+    $message->to('AdminSistemaEscolar@sistemaescolar.colegiodigital.org')
+            ->subject('Nuevo registro en el sistema escolar')
+            ->from('AdminSistemaEscolar@sistemaescolar.colegiodigital.org', 'Colegio Digital');
+});
 
     return $newPendingUser;
 }

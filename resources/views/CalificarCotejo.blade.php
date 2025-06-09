@@ -20,14 +20,25 @@
 
 
 
+
+
+
 @extends('layouts.app')
 
 @section('content')
+
+
 
 <!-- Botón para regresar a Evaluación -->
 <a href="{{ route('panel', ['grado' => $gradoFiltro, 'grupo' => $grupoFiltro]) }}" class="btn btn-secondary">
     <i class="bi bi-arrow-left-circle"></i> Regresar al Panel
 </a>
+<br>
+<div class="text-center mt-3">
+    <h2>Criterios de evaluación.</h2>
+    <h3>Valor de cada criterio en porcentaje.</h3>
+    <br>
+</div>
 
 
 
@@ -38,20 +49,40 @@
 
     @php
     $tipos = ['apoyo_p', 'proyectos', 'trabajos_clase', 'tareas', 'examen'];
+  
     @endphp
 
 <div class="row mb-4">
     @foreach ($tipos as $index => $tipo)
-        <div class="col-md-2 text-center">
-            <label class="fw-bold" for="peso-Rubro{{ $index + 1 }}">Criterio{{ $index + 1 }}</label>
-            <input type="number" class="form-control peso-tabla"
-                   id="peso-Rubro{{ $index + 1 }}"
-                   name="Rubro{{ $index + 1 }}"
-                   data-tipo="{{ $tipo }}"
-                   value="{{ old('Rubro' . ($index + 1), $registro->{'rubro' . ($index + 1)} ?? '') }}"
-                   min="0" step="0.01">
-        </div>
-    @endforeach
+    <div class="col-md-2 text-center">
+        <label class="fw-bold" for="peso-Rubro{{ $index + 1 }}">Criterio{{ $index + 1 }}</label>
+        <br>
+
+        <input type="number" class="form-control peso-tabla"
+               id="peso-Rubro{{ $index + 1 }}"
+               name="Rubro{{ $index + 1 }}"
+               data-tipo="{{ $tipo }}"
+               value="{{ old('Rubro' . ($index + 1), $registro->{'rubro' . ($index + 1)} ?? '') }}"
+               min="0" step="0.01">
+
+        <!-- Nuevo input para la etiqueta 
+        <input type="text" class="form-control mt-2"
+               id="etiqueta-Rubro{{ $index + 1 }}"
+               name="Etiqueta{{ $index + 1 }}"
+               placeholder="Etiqueta para Criterio{{ $index + 1 }}"
+               value="{{ old('Etiqueta' . ($index + 1), $etiquetasRubros['rubro' . ($index + 1)] ?? '') }}">
+-->
+        <!-- Botón para guardar etiqueta 
+        <button type="button"
+            class="btn btn-sm btn-primary mt-2 guardar-etiqueta-btn"
+            data-tipo="rubro{{ $index + 1 }}"
+            data-index="{{ $index + 1 }}">
+            Guardar Etiqueta
+        </button>
+        -->
+    </div>
+@endforeach
+
 </div>
 
     <div class="card mt-4">
@@ -86,7 +117,14 @@
 
 <!-- Contenido de pestañas -->
 <div class="tab-content" id="calificacionesTabsContent">
-    @foreach (["apoyo_p", "proyectos", "trabajos_clase", "tareas", "examen"] as $tipo)
+    @foreach (["apoyo_p", "proyectos", "trabajos_clase", "tareas", "examen"] as $pestaniaIndex => $tipo)
+    @if ($tipo == "apoyo_p")
+    <br>
+            <h2>Aspecto de evaluacion de criterio.</h2>
+            <div class="alert alert-info" role="alert">
+                <strong>Nota:</strong> Al guardar calificaciones debes activar las que tengan calificacion.
+         </div>
+    @endif
         <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="{{ $tipo }}" role="tabpanel" 
              aria-labelledby="{{ $tipo }}-tab">
              
@@ -103,25 +141,31 @@
 
                                 <!-- Generar las columnas de las evaluaciones por pestaña -->
                                 @foreach (range(1, ($tipo == "apoyo_p") ? 5 : 3) as $i)
+                                
                                     <th>
                                         <i class="bi bi-check-circle"></i>
                                         <span class="editable-title" contenteditable="true" data-index="{{ $i }}" data-tipo="{{ $tipo }}">
-
-                                            Evaluación {{ $i }}
+                                            Aspecto {{ $i }}
                                         </span>
 
                                         @if ($tipo != "apoyo_p")
                                             <!-- Input de Total de elementos correctos debajo de la evaluación -->
                                             <input type="number" class="form-control mt-1" 
                                                    id="elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
-                                                   placeholder="Total de elementos correctos" 
+                                                   placeholder="Valor Maximo                                ✏️" 
                                                    value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
                                                    data-correctos="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
-                                                   oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
-                                                   min="0" step="0.01">  <!-- Se asegura de no permitir valores negativos -->
+                                                   oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}'); sincronizarHiddenCorrectos('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
+                                                   min="0" step="0.01">
+                                                   
+                                            <!-- Input oculto para enviar el valor máximo al guardar calificaciones -->
+                                            <input type="hidden"
+                                                name="elementos_correctos[{{ $alumno->id }}][{{ $i }}][{{ $tipo }}]"
+                                                id="hidden_elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}"
+                                                value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}">
 
                                             <button type="button" class="btn btn-primary btn-sm mt-1"
-                                                    onclick="guardarElementosCorrectos('{{ $alumno->id }}', '{{ $tipo }}', {{ $i }})">
+                                                    onclick="guardarElementosCorrectos('{{ $alumno->id }}', '{{ $tipo }}', {{ $i }}, {{ $pestaniaIndex }})">
                                                 Guardar
                                             </button>
                                         @endif
@@ -157,45 +201,59 @@
                            data-index="{{ $i }}"
                            value="{{ $calificaciones->$campoEvaluacion ?? '' }}">
 
+                           @if ($tipo == "apoyo_p")
+                            <span id="visual_uno_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" style="font-weight:bold; color:#28a745; margin-left:5px;">
+                                @if(($calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '') == 1) 1 @endif
+                            </span>
+                            <div style="color: #b22222; font-size: 0.9em; margin-top: 2px;">
+                                <strong>Advertencia:</strong> Solo ingresa un <b>1</b> o <b>0</b>
+                            </div>
+                        @endif
+
                     @if ($tipo != "apoyo_p")
                         <div>
                             <!-- Total de elementos correctos -->
-                            <input type="number" class="form-control mt-1" 
-                                   id="elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
-                                   placeholder="Total de elementos correctos" 
-                                   value="{{ $valorCorrecto }}"
-                                   data-correctos="{{ $valorCorrecto }}"
-                                   oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
-                                   min="0" step="0.01"> <!-- Se asegura de no permitir valores negativos -->
+                            <hidden input type="number" class="form-control mt-1" 
+                                id="elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
+                                placeholder="Total de elementos correctos" 
+                                value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
+                                data-correctos="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
+                                oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}'); sincronizarHiddenCorrectos('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
+                                min="0" step="0.01"> <!-- Se asegura de no permitir valores negativos -->
+
+                            <!-- Input oculto para enviar el valor máximo al guardar calificaciones -->
+                            <input type="hidden"
+                                name="elementos_correctos[{{ $alumno->id }}][{{ $i }}][{{ $tipo }}]"
+                                id="hidden_elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}"
+                                value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}">
 
                             <!-- Totales -->
                             <input type="number" class="form-control mt-1" 
-                                   id="elementos_totales_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
-                                   placeholder="Totales" 
-                                   min="0" step="0.01" 
-                                   oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"> <!-- Se asegura de no permitir valores negativos -->
+                                id="elementos_totales_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
+                                placeholder="Entregables" 
+                                min="0" step="0.01" 
+                                oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"> <!-- Se asegura de no permitir valores negativos -->
 
                             <!-- Mostrar Calificación -->
                             <p class="mt-1">Calificación: 
-                                <span id="calificacion_{{ $alumno->id }}_{{ $i }}">-</span>
+                                <span id="calificacion_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}">-</span>
                             </p>
                         </div>
                     @endif
 
-                    <button type="button" class="btn btn-primary btn-sm mt-1"
+                    <!-- Botón para activar/desactivar el input -->
+                        <button type="button"
+                            class="btn btn-danger btn-sm mt-1"
+                            id="btn-activar-{{ $tipo }}-{{ $alumno->id }}-{{ $i }}"
                             onclick="toggleEditable('{{ $tipo }}', '{{ $alumno->id }}', {{ $i }})">
-                        Activar
-                    </button>
+                            Activar
+                        </button>
                     </td>
                 @endforeach
 
                                 <td class="text-center">
                                     <small class="text-muted">Calificación total: {{ $calificaciones->Total ?? 'N/D' }}</small> <br>    
-                                    <span class="porcentaje-obtenido" 
-                                        data-tipo="{{ $tipo }}" 
-                                        data-total="{{ $calificaciones->Total ?? 0 }}">
-                                        <strong>-</strong>
-                                    </span>
+
                                     <br>
                                 </td>
                             </tr>
@@ -284,10 +342,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Activar input editable
     window.toggleEditable = function (tipo, alumnoId, evaluacionIndex) {
         const input = document.getElementById(`input-${tipo}-${alumnoId}-${evaluacionIndex}`);
+        const btn = document.getElementById(`btn-activar-${tipo}-${alumnoId}-${evaluacionIndex}`);
         const warning = document.getElementById(`warning-${alumnoId}-${evaluacionIndex}`);
         input.disabled = !input.disabled;
-        if (!input.disabled) warning.style.display = 'none';
-        input.focus();
+        if (!input.disabled) {
+            if (warning) warning.style.display = 'none';
+            input.focus();
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-success');
+            btn.textContent = 'Editando...';
+        } else {
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-danger');
+            btn.textContent = 'Activar';
+        }
     };
 
     // Validar calificaciones
@@ -378,13 +446,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-function guardarElementosCorrectos(alumnoId, tipoPestania, evaluacionIndex) {
-    // Obtener el valor de los elementos correctos para la evaluación
+function guardarElementosCorrectos(alumnoId, tipoPestania, evaluacionIndex, pestaniaIndex) {
     const correctos = parseFloat(document.getElementById(`elementos_correctos_${alumnoId}_${evaluacionIndex}_${tipoPestania}`).value) || 0;
 
-    // Crear el objeto de datos para enviar al backend
     const data = {
-        _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'), // Token CSRF
+        _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
         alumnos: [
             {
                 id: alumnoId,
@@ -396,21 +462,22 @@ function guardarElementosCorrectos(alumnoId, tipoPestania, evaluacionIndex) {
                 ]
             }
         ],
-        tipo_pestania: tipoPestania // El tipo de pestaña (por ejemplo, "proyectos")
+        tipo_pestania: tipoPestania,
+        pestania_index: pestaniaIndex // <-- ahora sí es el índice de la pestaña
     };
 
-    // Realizar la solicitud al backend
     fetch('/guardar-elementos-correctos', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data), // Convertir los datos a formato JSON
+        body: JSON.stringify(data),
     })
     .then(res => res.json())
-    .then(response => {
+    .then response => {
         if (response.success) {
             alert('Guardado correctamente');
+            location.reload();
         } else {
             alert('Error al guardar');
         }
@@ -436,11 +503,11 @@ function calcularCalificacion(alumnoId, evaluacionIndex, tipoPestania) {
     const totales = parseFloat(totalesInput.value) || 0;
 
     let resultado = '-';
-    if (totales > 0) {
-        resultado = ((totales / correctos) * 100).toFixed(2) + '%';
+    if (correctos > 0) {
+        resultado = ((totales / correctos) * 100).toFixed(2);
     }
 
-    const resultadoSpan = document.getElementById(`calificacion_${alumnoId}_${evaluacionIndex}`);
+    const resultadoSpan = document.getElementById(`calificacion_${alumnoId}_${evaluacionIndex}_${tipoPestania}`);
     if (resultadoSpan) {
         resultadoSpan.textContent = resultado;
     }
@@ -472,6 +539,106 @@ document.getElementById('btn-guardar-periodo').addEventListener('click', functio
         alert('Debes ingresar un período para descargar el PDF.');
     }
 });
+
+function sincronizarHiddenCorrectos(alumnoId, i, tipo) {
+    const visible = document.getElementById(`elementos_correctos_${alumnoId}_${i}_${tipo}`);
+    const hidden = document.getElementById(`hidden_elementos_correctos_${alumnoId}_${i}_${tipo}`);
+    if (visible && hidden) {
+        hidden.value = visible.value;
+    }
+}
+
+// Sincroniza todos los inputs al cargar la página (por si ya hay valores)
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input[id^="elementos_correctos_"]').forEach(input => {
+        const parts = input.id.split('_');
+        if (parts.length >= 4) {
+            sincronizarHiddenCorrectos(parts[2], parts[3], parts[4]);
+        }
+    });
+});
+
+
+ document.querySelectorAll('.guardar-etiqueta-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const index = this.getAttribute('data-index');
+        const tipo = this.getAttribute('data-tipo');
+        const inputEtiqueta = document.getElementById('etiqueta-Rubro' + index);
+        const etiqueta = inputEtiqueta.value.trim();
+
+        const grado = "{{ request('grado') }}";
+        const grupo = "{{ request('grupo') }}";
+
+        if (etiqueta === '') {
+            alert('La etiqueta no puede estar vacía.');
+            return;
+        }
+
+        fetch('{{ route("guardar.etiqueta") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                tipo: tipo,
+                etiqueta: etiqueta,
+                grado: grado,
+                grupo: grupo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.mensaje || 'Etiqueta guardada correctamente.');
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar la etiqueta.');
+        });
+    });
+});
+
+document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('guardar-etiqueta-btn')) {
+            const button = e.target;
+            const index = button.getAttribute('data-index');
+            const tipo = button.getAttribute('data-tipo');
+            const inputEtiqueta = document.getElementById('etiqueta-Rubro' + index);
+            const etiqueta = inputEtiqueta.value.trim();
+
+            const grado = @json(request('grado'));
+            const grupo = @json(request('grupo'));
+
+            if (etiqueta === '') {
+                alert('La etiqueta no puede estar vacía.');
+                return;
+            }
+
+            fetch('{{ route("guardar.etiqueta") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    tipo: tipo,
+                    etiqueta: etiqueta,
+                    grado: grado,
+                    grupo: grupo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensaje || 'Etiqueta guardada correctamente.');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al guardar la etiqueta.');
+            });
+        }
+    });
 </script>
 
 @endsection

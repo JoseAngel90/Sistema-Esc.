@@ -86,11 +86,12 @@
                 </div>
                 <div class="card-body text-dark">
                     <h5 class="card-title">Espacio para Evaluaciones</h5>
-                    <p class="card-text">Registra y visualiza evaluaciones.</p>
+                    <p class="card-text">Registro de evaluaciones, <br> criterios y aspectos.</p>
                     @if ($existenAlumnos)
-                        <a href="{{ route('evaluacion', ['grado' => $grado, 'grupo' => $grupo]) }}" class="btn btn-warning fw-bold text-dark">
+                        <a href="{{ url('/calificar-cotejo') . '?grado=' . $grado . '&grupo=' . $grupo }}" class="btn btn-warning fw-bold text-dark">
                             <i class="fas fa-arrow-right"></i> Ir
                         </a>
+
                     @else
                         <p class="text-danger">No hay alumnos registrados en este grado y grupo.</p>
                     @endif
