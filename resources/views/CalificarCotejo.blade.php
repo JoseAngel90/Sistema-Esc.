@@ -1,31 +1,183 @@
-<!-- Modal para ingresar el periodo -->
-<div class="modal fade" id="modalPeriodo" tabindex="-1" aria-labelledby="modalPeriodoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalPeriodoLabel">Ingresa el periodo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <label for="periodo">Periodo:</label>
-                <input type="text" class="form-control" id="periodo" name="periodo" required>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btn-guardar-periodo">Guardar</button>
-            </div>
+<!-- Modal para mostrar el resumen de calificaciones -->
+<div class="modal fade" id="modalResumen" tabindex="-1" aria-labelledby="modalResumenLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalResumenLabel">
+          <i class="bi bi-file-person"></i> 📊 Resumen de Calificaciones
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="tablaResumenContainer" class="table-responsive">
+          <!-- Aquí se carga la tabla de resumen dinámicamente -->
         </div>
+      </div>
     </div>
+  </div>
 </div>
-
-
-
 
 
 
 @extends('layouts.app')
 
 @section('content')
+<style>
+
+    
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        background: #f8f9fa;
+    }
+
+    .modal-header {
+        background: linear-gradient(to right, #0062E6, #33AEFF);
+        color: white;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        padding: 1rem 1.5rem;
+    }
+
+    .modal-title {
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .btn-close {
+        filter: brightness(0) invert(1); /* icono blanco */
+    }
+
+    .grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem; /* espacio entre columnas y filas */
+  }
+
+  @media (max-width: 992px) {
+    .grid-container {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 576px) {
+    .grid-container {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
+  .nav-tabs {
+  border-bottom: none;
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 10px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+
+/* Cada botón/pestaña */
+.nav-tabs .nav-link {
+  margin-right: 8px;
+  background-color: #ffffff;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  color: #495057;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+/* Hover para dar sensación interactiva */
+.nav-tabs .nav-link:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Activo: más notorio, oscuro y definido */
+.nav-tabs .nav-link.active {
+  background-color: #0d6efd;
+  color: #fff;
+  border-color: #0b5ed7;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+ .oculto {
+        display: none;
+    }
+
+
+    .resumen-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    background-color: #fff;
+    color: #333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.resumen-tabla th {
+    background-color: #f4f6f9;
+    color: #111;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.resumen-tabla td {
+    text-align: center;
+    padding: 0.65rem;
+    border-bottom: 1px solid #eee;
+}
+
+.resumen-tabla tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.resumen-tabla tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.resumen-tabla td strong {
+    color: #111;
+    font-weight: bold;
+}
+
+.resumen-tabla .badge {
+    background-color: #eaeaea;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    display: inline-block;
+    margin-top: 0.25rem;
+}
+
+#buscadorResumen {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 1rem auto;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 0.95rem;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+    background-image: url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/icons/search.svg');
+    background-repeat: no-repeat;
+    background-position: 0.6rem center;
+    background-size: 1rem;
+    padding-left: 2.2rem;
+    color: #333;
+}
+
+</style>
 
 
 
@@ -46,42 +198,48 @@
 <form id="formRubro" action="{{ route('guardar.rubro') }}" method="POST">
     @csrf
     <input type="hidden" name="alumno_id" value="{{ auth()->user()->alumno_id }}">
+    <input type="hidden" name="grado" value="{{ $gradoFiltro }}">
+    <input type="hidden" name="grupo" value="{{ $grupoFiltro }}">
 
     @php
     $tipos = ['apoyo_p', 'proyectos', 'trabajos_clase', 'tareas', 'examen'];
   
     @endphp
 
-<div class="row mb-4">
+<div class="container-fluid">
+  <div class="grid-container mb-4">
     @foreach ($tipos as $index => $tipo)
-    <div class="col-md-2 text-center">
-        <label class="fw-bold" for="peso-Rubro{{ $index + 1 }}">Criterio{{ $index + 1 }}</label>
-        <br>
+      <div class="border rounded p-4 shadow-sm h-100 bg-light">
 
-        <input type="number" class="form-control peso-tabla"
+        <label class="fw-bold text-primary mb-3 d-block" for="peso-Rubro{{ $index + 1 }}">
+          Criterio {{ $index + 1 }}
+        </label>
+
+        <input type="number" class="form-control peso-tabla mb-4"
                id="peso-Rubro{{ $index + 1 }}"
                name="Rubro{{ $index + 1 }}"
                data-tipo="{{ $tipo }}"
                value="{{ old('Rubro' . ($index + 1), $registro->{'rubro' . ($index + 1)} ?? '') }}"
-               min="0" step="0.01">
+               min="0" step="0.01"
+               placeholder="Valor">
 
-        <!-- Nuevo input para la etiqueta 
-        <input type="text" class="form-control mt-2"
+        @php
+            $etiqueta = $etiquetas->firstWhere('etiqueta_nombre', 'rubro' . ($index + 1));
+        @endphp
+
+        <!-- Nombre del criterio (etiqueta_rubro) -->
+        <label for="etiqueta-Rubro{{ $index + 1 }}" class="form-label text-secondary mb-2">
+          Nombre del criterio
+        </label>
+        <input type="text" class="form-control mb-4"
                id="etiqueta-Rubro{{ $index + 1 }}"
-               name="Etiqueta{{ $index + 1 }}"
-               placeholder="Etiqueta para Criterio{{ $index + 1 }}"
-               value="{{ old('Etiqueta' . ($index + 1), $etiquetasRubros['rubro' . ($index + 1)] ?? '') }}">
--->
-        <!-- Botón para guardar etiqueta 
-        <button type="button"
-            class="btn btn-sm btn-primary mt-2 guardar-etiqueta-btn"
-            data-tipo="rubro{{ $index + 1 }}"
-            data-index="{{ $index + 1 }}">
-            Guardar Etiqueta
-        </button>
-        -->
-    </div>
-@endforeach
+               name="etiqueta-Rubro{{ $index + 1 }}"
+               value="{{ old('etiqueta-Rubro' . ($index + 1), $etiqueta->etiqueta_rubro ?? '') }}"
+               placeholder="Nombre del criterio">
+
+      </div>
+    @endforeach
+
 
 </div>
 
@@ -93,7 +251,7 @@
             <div id="alertaTotal" class="text-danger" style="display: none;">
                 La suma de los rubros no puede ser mayor a 100. Por favor, ajusta los valores.
             </div>
-            <button type="submit" id="btnGuardar" class="btn btn-primary mt-3">Guardar Ponderación</button>
+            <button type="submit" id="btnGuardar" class="btn btn-primary mt-3">Guardar Ponderación/Nombres</button>
         </div>
     </div>
 </form>
@@ -102,36 +260,104 @@
         <strong>Advertencia:</strong> Asegúrese de ingresar los datos correctos para evitar errores.
     </div>
 
+
+    <button type="button"
+        class="mostrar-resumen"
+        style="
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        "
+        onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'"
+    >
+        📋 Mostrar Resumen
+    </button>
+
+
 <!-- Pestañas -->
 <ul class="nav nav-tabs" id="calificacionesTabs" role="tablist">
     @foreach (["apoyo_p", "proyectos", "trabajos_clase", "tareas", "examen"] as $index => $tipo)
         <li class="nav-item" role="presentation">
             <a class="nav-link {{ $loop->first ? 'active' : '' }}" id="{{ $tipo }}-tab" data-bs-toggle="tab" 
                href="#{{ $tipo }}" role="tab" aria-controls="{{ $tipo }}" aria-selected="{{ $loop->first ? 'true' : 'false' }}">
-                Criterio{{ $index + 1 }}
+                Criterio {{ $index + 1 }}
+                @php
+                    $etiqueta = $etiquetas->firstWhere('etiqueta_nombre', 'rubro' . ($index + 1));
+                @endphp
+        
+        <input type="text" class="form-control mt-1"
+               disabled="disabled"
+               id="etiqueta-Rubro{{ $index + 1 }}"
+               name="etiqueta-Rubro{{ $index + 1 }}"
+               value="{{ old('etiqueta-Rubro' . ($index + 1), $etiqueta->etiqueta_rubro ?? '') }}"
+               placeholder="Nombre del criterio">
+
+
+       
             </a>
         </li>
     @endforeach
 </ul>
 
 
+
 <!-- Contenido de pestañas -->
 <div class="tab-content" id="calificacionesTabsContent">
     @foreach (["apoyo_p", "proyectos", "trabajos_clase", "tareas", "examen"] as $pestaniaIndex => $tipo)
-    @if ($tipo == "apoyo_p")
+    <!-- @if ($tipo == "apoyo_p")
     <br>
-            <h2>Aspecto de evaluacion de criterio.</h2>
-            <div class="alert alert-info" role="alert">
-                <strong>Nota:</strong> Al guardar calificaciones debes activar las que tengan calificacion.
-         </div>
-    @endif
+    <h2>Aspecto de evaluacion de criterio.</h2>
+    <div class="alert alert-info" role="alert">
+        <strong>Nota:</strong> Al guardar calificaciones debes activar las que tengan calificacion.
+    </div>
+    <div class="alert alert-warning" role="alert">
+        <strong>Importante:</strong> Si vuelves a guardar otra calificación y ves un <strong>(100)</strong>, cámbialo manualmente a <strong>(1). <br> Unicamente para Criterio 1</strong>.
+    </div>
+@endif -->
+
         <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="{{ $tipo }}" role="tabpanel" 
              aria-labelledby="{{ $tipo }}-tab">
-             
+
+              @if ($tipo == "apoyo_p")
+                <br>
+                <h2>Aspecto de evaluacion de cotejo.</h2>
+                <div class="alert alert-info" role="alert">
+                    <strong>Nota:</strong> Al guardar calificaciones debes activar las que tengan calificacion.
+                </div>
+                <div class="alert alert-warning" role="alert">
+                    <strong>Importante:</strong> Si vuelves a guardar otra calificación y ves un <strong>(100)</strong>, cámbialo manualmente a <strong>(1). <br> Unicamente para Evaluacion de cotejo</strong>.
+                </div>
+                @endif
+                    @php
+                    $rubrosPorTipo = [
+                        'apoyo_p' => 'rubro1',
+                        'proyectos' => 'rubro2',
+                        'trabajos_clase' => 'rubro3',
+                        'tareas' => 'rubro4',
+                        'examen' => 'rubro5',
+                    ];
+                    $rubroActual = $rubrosPorTipo[$tipo] ?? null;
+                    $etiquetaActual = $etiquetas->firstWhere('etiqueta_nombre', $rubroActual);
+                @endphp
+                <br>
+                <h3>
+                    Aspecto de evaluacion: {{ $etiquetaActual && $etiquetaActual->etiqueta_rubro ? $etiquetaActual->etiqueta_rubro : 'Evaluación' }}
+                </h3>
+
             <form action="{{ route('calificaciones.guardar') }}" method="POST">
                 @csrf
                 <meta name="csrf-token" content="{{ csrf_token() }}">
                 <input type="hidden" name="tipo_pestania" value="{{ $tipo }}">
+                <input type="hidden" name="grado" value="{{ $gradoFiltro }}">
+                <input type="hidden" name="grupo" value="{{ $grupoFiltro }}">    
 
                 <div class="table-responsive mt-3">
                     <table class="table table-bordered table-hover shadow-sm">
@@ -143,20 +369,33 @@
                                 @foreach (range(1, ($tipo == "apoyo_p") ? 5 : 3) as $i)
                                 
                                     <th>
-                                        <i class="bi bi-check-circle"></i>
-                                        <span class="editable-title" contenteditable="true" data-index="{{ $i }}" data-tipo="{{ $tipo }}">
-                                            Aspecto {{ $i }}
-                                        </span>
+                                        <i class="bi bi-pen"></i>
+                                        <input
+                                            type="text"
+                                            class="editable-title"
+                                            name="aspectos[{{ $i }}][{{ $tipo }}]"
+                                            id="etiqueta_aspecto_{{ $i }}_{{ $tipo }}"
+                                            value="{{ old('aspectos.' . $i . '.' . $tipo, $aspectos[$i][$tipo] ?? 'Aspecto ' . $i) }}"
+                                            placeholder="Aspecto {{ $i }}"
+                                            style="border: 1.5px solid #6c757d; background: rgba(255, 255, 255, 0.8); font-weight: 600; color: #333; width: 120px; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+                                            maxlength="255"
+                                        />
 
                                         @if ($tipo != "apoyo_p")
                                             <!-- Input de Total de elementos correctos debajo de la evaluación -->
-                                            <input type="number" class="form-control mt-1" 
-                                                   id="elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
-                                                   placeholder="Valor Maximo                                ✏️" 
-                                                   value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
-                                                   data-correctos="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
-                                                   oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}'); sincronizarHiddenCorrectos('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
-                                                   min="0" step="0.01">
+                                            <input type="number"
+                                                class="form-control mt-1"
+                                                id="elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}"
+                                                name="elementos_correctos[{{ $alumno->id }}][{{ $i }}][{{ $tipo }}]"
+                                                placeholder="Valor Máximo"
+                                                value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}"
+                                                data-grado="{{ $alumno->grado }}"
+                                                data-grupo="{{ $alumno->grupo }}"
+                                                oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}'); sincronizarHiddenCorrectos('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
+                                                min="0" step="0.01"
+                                            >
+
+                                            
                                                    
                                             <!-- Input oculto para enviar el valor máximo al guardar calificaciones -->
                                             <input type="hidden"
@@ -166,7 +405,7 @@
 
                                             <button type="button" class="btn btn-primary btn-sm mt-1"
                                                     onclick="guardarElementosCorrectos('{{ $alumno->id }}', '{{ $tipo }}', {{ $i }}, {{ $pestaniaIndex }})">
-                                                Guardar
+                                                Guardar Valor Máximo
                                             </button>
                                         @endif
                                     </th>
@@ -192,68 +431,88 @@
                                      : '';
                 @endphp
                 <td class="text-center">
-                    <input type="number" class="form-control"
-                           name="evaluaciones[{{ $alumno->id }}][eval{{ $i }}]"
-                           id="input-{{ $tipo }}-{{ $alumno->id }}-{{ $i }}"
-                           min="0" max="999" step="0.1"
-                           disabled
-                           data-id="{{ $alumno->id }}"
-                           data-index="{{ $i }}"
-                           value="{{ $calificaciones->$campoEvaluacion ?? '' }}">
-
-                           @if ($tipo == "apoyo_p")
-                            <span id="visual_uno_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" style="font-weight:bold; color:#28a745; margin-left:5px;">
-                                @if(($calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '') == 1) 1 @endif
-                            </span>
-                            <div style="color: #b22222; font-size: 0.9em; margin-top: 2px;">
-                                <strong>Advertencia:</strong> Solo ingresa un <b>1</b> o <b>0</b>
-                            </div>
+                    <div class="d-flex align-items-center">
+                        @if ($tipo !== 'apoyo_p')
+                            <span class="me-3">Calificación: </span>
                         @endif
+
+                        @php
+                            $valor = $calificaciones->$campoEvaluacion ?? null;
+                            $color = $tipo != 'apoyo_p' ? 'background-color:#ebebef' : '';
+                        @endphp
+
+                        <input type="number" class="form-control"
+                            name="evaluaciones[{{ $alumno->id }}][eval{{ $i }}]"
+                            id="input-{{ $tipo }}-{{ $alumno->id }}-{{ $i }}"
+                            min="0" max="999" step="0.1"
+                            style="{{ $color }}"
+                            tabindex="-1"
+                            @if ($tipo == 'apoyo_p') disabled @endif                            
+                            value="{{ $valor }}"
+                            data-id="{{ $alumno->id }}"
+                            data-index="{{ $i }}"
+                            oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
+                        >
+
+                    </div>
+                           @if ($tipo == "apoyo_p")
+                                <span id="visual_uno_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" style="font-weight:bold; color:#28a745; margin-left:5px;">
+                                    @if(($calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '') == 1) 1 @endif
+                                </span>
+                                <div style="color: #b22222; font-size: 0.9em; margin-top: 2px;">
+                                    <strong>Advertencia:</strong> Solo ingresa un <b>1</b> o <b>0</b>
+                                </div>
+                                <!-- Botón solo para apoyo_p -->
+                                <button type="button"
+                                    class="btn btn-success btn-sm mt-1"
+                                    id="btn-activar-{{ $tipo }}-{{ $alumno->id }}-{{ $i }}"
+                                    onclick="toggleEditable('{{ $tipo }}', '{{ $alumno->id }}', {{ $i }})">
+                                    Ingresar dato
+                                </button>
+                            @endif
 
                     @if ($tipo != "apoyo_p")
                         <div>
-                            <!-- Total de elementos correctos -->
-                            <hidden input type="number" class="form-control mt-1" 
-                                id="elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
-                                placeholder="Total de elementos correctos" 
-                                value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
-                                data-correctos="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}" 
-                                oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}'); sincronizarHiddenCorrectos('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"
-                                min="0" step="0.01"> <!-- Se asegura de no permitir valores negativos -->
 
-                            <!-- Input oculto para enviar el valor máximo al guardar calificaciones -->
-                            <input type="hidden"
-                                name="elementos_correctos[{{ $alumno->id }}][{{ $i }}][{{ $tipo }}]"
-                                id="hidden_elementos_correctos_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}"
-                                value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '' }}">
+                        
+                            <!-- Total de elementos correctos -->
+
+                                <span id="valor_maximo_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" style="display: none;">
+                                    {{ $calificacionesPorPestania[$tipo][$alumno->id]->{'valor_maximo' . $i} ?? '0' }}
+                                </span>
+
 
                             <!-- Totales -->
-                            <input type="number" class="form-control mt-1" 
-                                id="elementos_totales_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
-                                placeholder="Entregables" 
-                                min="0" step="0.01" 
-                                oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"> <!-- Se asegura de no permitir valores negativos -->
+                            <div class="d-flex align-items-center">
+                            @if ($tipo != "apoyo_p")
+                                <span class="me-3">Entregables: </span>
+                            @endif
+                                    <input type="number" class="form-control mt-1" 
+                                        id="elementos_totales_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}" 
+                                        name="elementos_totales[{{ $alumno->id }}][{{ $i }}][{{ $tipo }}]"
+                                        value="{{ $calificacionesPorPestania[$tipo][$alumno->id]->{'entregables_' . $i} ?? '' }}"
+                                        min="0" step="0.01" 
+                                        oninput="calcularCalificacion('{{ $alumno->id }}', {{ $i }}, '{{ $tipo }}')"> <!-- Se asegura de no permitir valores negativos -->
+                            </div>
+                                <!-- Mostrar Calificación -->
+                                <!-- <p class="mt-1">Calificación: 
+                                    <span  id="calificacion_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}">-</span>
+                                </p> -->
+                            </div>
+                        @endif
 
-                            <!-- Mostrar Calificación -->
-                            <p class="mt-1">Calificación: 
-                                <span id="calificacion_{{ $alumno->id }}_{{ $i }}_{{ $tipo }}">-</span>
-                            </p>
-                        </div>
-                    @endif
-
-                    <!-- Botón para activar/desactivar el input -->
-                        <button type="button"
-                            class="btn btn-danger btn-sm mt-1"
-                            id="btn-activar-{{ $tipo }}-{{ $alumno->id }}-{{ $i }}"
-                            onclick="toggleEditable('{{ $tipo }}', '{{ $alumno->id }}', {{ $i }})">
-                            Activar
-                        </button>
-                    </td>
-                @endforeach
+                        <!-- Botón para activar/desactivar el input -->
+                            <!-- <button type="button"
+                                class="btn btn-success btn-sm mt-1"
+                                id="btn-activar-{{ $tipo }}-{{ $alumno->id }}-{{ $i }}"
+                                onclick="toggleEditable('{{ $tipo }}', '{{ $alumno->id }}', {{ $i }})">
+                                Ingresar dato
+                            </button> -->
+                        </td>
+                    @endforeach
 
                                 <td class="text-center">
                                     <small class="text-muted">Calificación total: {{ $calificaciones->Total ?? 'N/D' }}</small> <br>    
-
                                     <br>
                                 </td>
                             </tr>
@@ -263,7 +522,7 @@
                     </table>
                 </div>
 
-                <button type="submit" class="btn btn-success mt-3 guardar-calificaciones">Guardar Calificaciones</button>
+                <button type="submit" class="btn btn-success mt-3 guardar-calificaciones">Guardar Calificaciones / Nombre de aspectos</button>
             </form>
         </div>
     @endforeach
@@ -272,6 +531,13 @@
 <div class="alert alert-info mt-4 text-center" role="alert">
     <strong>Nota:</strong> Recuerda que al cerrar el acta, hará que todas las calificaciones no se puedan editar.
     
+
+<!-- Botón para abrir el modal -->
+<form id="form-descargar" action="{{ route('descargar.acta') }}" method="GET">
+    <input type="hidden" name="grado" value="{{ request('grado') }}">
+    <input type="hidden" name="grupo" value="{{ request('grupo') }}">
+<button type="submit" class="btn btn-success">Descargar PDF</button></form>
+
 <!-- Botón para cerrar el acta -->
 <form id="form-cerrar" action="{{ route('cerrar.acta') }}" method="POST">
     @csrf
@@ -280,14 +546,6 @@
     <button type="submit" class="btn btn-danger mb-3">Cerrar Acta</button>
 </form>
 
-<!-- Botón para abrir el modal -->
-<form id="form-descargar" action="{{ route('descargar.acta') }}" method="GET">
-    <input type="hidden" name="grado" value="{{ request('grado') }}">
-    <input type="hidden" name="grupo" value="{{ request('grupo') }}">
-    <input type="hidden" name="periodo" id="periodo-input"> <!-- Aquí guardamos el período -->
-
-    <button type="button" class="btn btn-success" onclick="pedirPeriodo()">Descargar PDF</button>
-</form>
 
 
 
@@ -324,6 +582,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    
+
     // Escuchar cambios en los inputs
     inputsPeso.forEach(input => {
         input.addEventListener('input', actualizarTotal);
@@ -344,18 +604,26 @@ document.addEventListener('DOMContentLoaded', function () {
         const input = document.getElementById(`input-${tipo}-${alumnoId}-${evaluacionIndex}`);
         const btn = document.getElementById(`btn-activar-${tipo}-${alumnoId}-${evaluacionIndex}`);
         const warning = document.getElementById(`warning-${alumnoId}-${evaluacionIndex}`);
+        // Alterna el estado del input
         input.disabled = !input.disabled;
+
         if (!input.disabled) {
+            // El input ahora está habilitado → mostrar opción para DESACTIVAR
             if (warning) warning.style.display = 'none';
             input.focus();
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-success');
-            btn.textContent = 'Editando...';
-        } else {
+
             btn.classList.remove('btn-success');
             btn.classList.add('btn-danger');
-            btn.textContent = 'Activar';
+            btn.textContent = 'Desactivar';
+        } else {
+            // El input ahora está deshabilitado → mostrar opción para ACTIVAR
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-success');
+            btn.textContent = 'Ingresar  dato';
         }
+
+
+
     };
 
     // Validar calificaciones
@@ -445,36 +713,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
 function guardarElementosCorrectos(alumnoId, tipoPestania, evaluacionIndex, pestaniaIndex) {
-    const correctos = parseFloat(document.getElementById(`elementos_correctos_${alumnoId}_${evaluacionIndex}_${tipoPestania}`).value) || 0;
+    const inputCorrectos = document.getElementById(`elementos_correctos_${alumnoId}_${evaluacionIndex}_${tipoPestania}`);
+    if (!inputCorrectos) {
+        alert('No se encontró el input de elementos correctos');
+        return;
+    }
+    const correctos = parseFloat(inputCorrectos.value) || 0;
+
+    // Suponiendo que tienes grado y grupo guardados en atributos data-grado y data-grupo del input, por ejemplo:
+    const grado = inputCorrectos.getAttribute('data-grado');
+    const grupo = inputCorrectos.getAttribute('data-grupo');
+
+    if (!grado || !grupo) {
+        alert('No se encontró grado o grupo para el alumno');
+        return;
+    }
 
     const data = {
         _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        alumnos: [
-            {
-                id: alumnoId,
-                evaluaciones: [
-                    {
-                        evaluacion: evaluacionIndex,
-                        elementos_correctos: correctos
-                    }
-                ]
-            }
-        ],
+        grado: grado,
+        grupo: grupo,
         tipo_pestania: tipoPestania,
-        pestania_index: pestaniaIndex // <-- ahora sí es el índice de la pestaña
+        pestania_index: pestaniaIndex,
+        evaluacion: evaluacionIndex,
+        elementos_correctos: correctos
     };
 
     fetch('/guardar-elementos-correctos', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': data._token
         },
         body: JSON.stringify(data),
     })
     .then(res => res.json())
-    .then response => {
+    .then(response => {
         if (response.success) {
             alert('Guardado correctamente');
             location.reload();
@@ -490,55 +765,39 @@ function guardarElementosCorrectos(alumnoId, tipoPestania, evaluacionIndex, pest
 
 
 
+
 function calcularCalificacion(alumnoId, evaluacionIndex, tipoPestania) {
-    const correctosInput = document.getElementById(`elementos_correctos_${alumnoId}_${evaluacionIndex}_${tipoPestania}`);
+    const valorMaximoSpan = document.getElementById(`valor_maximo_${alumnoId}_${evaluacionIndex}_${tipoPestania}`);
     const totalesInput = document.getElementById(`elementos_totales_${alumnoId}_${evaluacionIndex}_${tipoPestania}`);
 
-    if (!correctosInput || !totalesInput) {
-        console.warn("No se encontraron los campos total de elementos correctos o totales");
+    if (!valorMaximoSpan || !totalesInput) {
+        console.warn("No se encontraron los campos valor máximo o totales");
         return;
     }
 
-    const correctos = parseFloat(correctosInput.value) || 0;
+    const correctos = parseFloat(valorMaximoSpan.textContent) || 0;
     const totales = parseFloat(totalesInput.value) || 0;
 
     let resultado = '-';
-    if (correctos > 0) {
-        resultado = ((totales / correctos) * 100).toFixed(2);
+    if (totales > 0 && correctos > 0) {
+        const calculo = (totales / correctos) * 100;
+        resultado = Math.min(calculo, 100).toFixed(1);
     }
 
+    // Actualizar el <span> de calificación
     const resultadoSpan = document.getElementById(`calificacion_${alumnoId}_${evaluacionIndex}_${tipoPestania}`);
     if (resultadoSpan) {
         resultadoSpan.textContent = resultado;
     }
-}
 
-// Mostrar el modal cuando el usuario quiera descargar
-function pedirPeriodo() {
-    // Limpiar el campo antes de mostrar el modal
-    document.getElementById('periodo').value = '';
-
-    var modal = new bootstrap.Modal(document.getElementById('modalPeriodo'));
-    modal.show();
-}
-
-// Cuando se da click en "Guardar" dentro del modal
-document.getElementById('btn-guardar-periodo').addEventListener('click', function () {
-    var periodo = document.getElementById('periodo').value.trim();
-
-    if (periodo !== "") {
-        document.getElementById('periodo-input').value = periodo;
-
-        // Cerrar el modal
-        var modal = bootstrap.Modal.getInstance(document.getElementById('modalPeriodo'));
-        modal.hide();
-
-        // Enviar el formulario
-        document.getElementById('form-descargar').submit();
-    } else {
-        alert('Debes ingresar un período para descargar el PDF.');
+    // Actualizar el <input> deshabilitado con la calificación
+    const inputCalificacion = document.getElementById(`input-${tipoPestania}-${alumnoId}-${evaluacionIndex}`);
+    if (inputCalificacion) {
+        inputCalificacion.value = (resultado !== '-' ? resultado : '');
     }
-});
+}
+
+
 
 function sincronizarHiddenCorrectos(alumnoId, i, tipo) {
     const visible = document.getElementById(`elementos_correctos_${alumnoId}_${i}_${tipo}`);
@@ -559,86 +818,108 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
- document.querySelectorAll('.guardar-etiqueta-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const index = this.getAttribute('data-index');
-        const tipo = this.getAttribute('data-tipo');
-        const inputEtiqueta = document.getElementById('etiqueta-Rubro' + index);
-        const etiqueta = inputEtiqueta.value.trim();
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.mostrar-resumen').forEach(btn => {
+        btn.addEventListener('click', function () {
+            let alumnos = @json($alumnos);
+            let tipos = @json($tipos);
+            let calificacionesPorPestania = @json($calificacionesPorPestania);
+            let registro = @json($registro);
+            let etiquetas = @json($etiquetas);
 
-        const grado = "{{ request('grado') }}";
-        const grupo = "{{ request('grupo') }}";
+            function construirTabla(filtro = '') {
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-bordered resumen-tabla">
+                            <thead>
+                                <tr>
+                                    <th>Alumno</th>
+                                    ${etiquetas.map((etiqueta, i) => `
+                                        <th>
+                                            ${etiqueta.etiqueta_rubro}<br>
+                                            <span class="porcentaje-obtenido badge bg-warning text-dark fw-bold">
+                                                ${(registro && registro['rubro' + (i + 1)] !== undefined) ? registro['rubro' + (i + 1)] : 0}%
+                                            </span>
+                                        </th>
+                                    `).join('')}
+                                    <th>Calificación final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${alumnos
+                                    .filter(alumno => alumno.nombre_alumno.toLowerCase().includes(filtro.toLowerCase()))
+                                    .map(alumno => {
+                                        let total = 0;
+                                        let row = `<tr><td><strong>${alumno.nombre_alumno}</strong></td>`;
+                                        tipos.forEach((tipo, i) => {
+                                            let calif = calificacionesPorPestania[tipo] &&
+                                                        calificacionesPorPestania[tipo][alumno.id]
+                                                ? (calificacionesPorPestania[tipo][alumno.id].Total ?? '-')
+                                                : '-';
+                                            let ponderacion = registro ? (registro['rubro' + (i + 1)] ?? 0) : 0;
+                                            let parcial = (calif !== '-' && ponderacion) ? (Number(calif) * ponderacion / 100) : 0;
+                                            total += (parcial || 0);
+                                            row += `<td>${calif !== '-' ? Number(calif).toFixed(2) : '-'}</td>`;
+                                        });
+                                        let mostrar = total ? total.toFixed(2) : '-';
+                                        row += `<td><strong>${mostrar}</strong></td></tr>`;
+                                        return row;
+                                    }).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+                return html;
+            }
 
-        if (etiqueta === '') {
-            alert('La etiqueta no puede estar vacía.');
-            return;
-        }
+            // Mostrar buscador y tabla
+            document.getElementById('tablaResumenContainer').innerHTML = `
+                <div class="mb-3">
+                        <input type="text" id="buscadorResumen" class="form-control mb-3" placeholder="🔍 Buscar alumno.">
+                        <div id="contenidoTablaResumen">
+                        ${construirTabla()}
+                    </div>
+                </div>
+            `;
 
-        fetch('{{ route("guardar.etiqueta") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                tipo: tipo,
-                etiqueta: etiqueta,
-                grado: grado,
-                grupo: grupo
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.mensaje || 'Etiqueta guardada correctamente.');
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al guardar la etiqueta.');
+            setTimeout(() => {
+                const buscador = document.getElementById('buscadorResumen');
+                if (buscador) {
+                    buscador.addEventListener('input', function () {
+                        const filtro = this.value;
+                        document.getElementById('contenidoTablaResumen').innerHTML = construirTabla(filtro);
+                    });
+                }
+            }, 100);
+
+            new bootstrap.Modal(document.getElementById('modalResumen')).show();
         });
     });
 });
 
-document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('guardar-etiqueta-btn')) {
-            const button = e.target;
-            const index = button.getAttribute('data-index');
-            const tipo = button.getAttribute('data-tipo');
-            const inputEtiqueta = document.getElementById('etiqueta-Rubro' + index);
-            const etiqueta = inputEtiqueta.value.trim();
 
-            const grado = @json(request('grado'));
-            const grupo = @json(request('grupo'));
 
-            if (etiqueta === '') {
-                alert('La etiqueta no puede estar vacía.');
-                return;
-            }
 
-            fetch('{{ route("guardar.etiqueta") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    tipo: tipo,
-                    etiqueta: etiqueta,
-                    grado: grado,
-                    grupo: grupo
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.mensaje || 'Etiqueta guardada correctamente.');
-                location.reload();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al guardar la etiqueta.');
-            });
-        }
+
+// Guardar la pestaña activa en localStorage
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('#calificacionesTabs .nav-link');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (e) {
+            localStorage.setItem('pestaniaActivaCalificarCotejo', e.target.id);
+        });
     });
+
+    // Al cargar la página, activar la pestaña guardada
+    const pestaniaGuardada = localStorage.getItem('pestaniaActivaCalificarCotejo');
+    if (pestaniaGuardada) {
+        const tab = document.getElementById(pestaniaGuardada);
+        if (tab) {
+            new bootstrap.Tab(tab).show();
+        }
+    }
+});
+
+
 </script>
 
 @endsection

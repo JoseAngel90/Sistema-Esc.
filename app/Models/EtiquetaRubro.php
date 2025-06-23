@@ -15,8 +15,14 @@ class EtiquetaRubro extends Model
         'user_id',
         'grado',
         'grupo',
-        'tipo',       // ejemplo: 'rubro1', 'evaluacion3'
-        'etiqueta'    // ejemplo: 'Responsabilidad'
+        'etiqueta_rubro',       
+        'etiqueta_pestania',
+        'etiqueta_nombre',
+        'etiqueta_aspecto5',
+        'etiqueta_aspecto4',
+        'etiqueta_aspecto3',
+        'etiqueta_aspecto2',
+        'etiqueta_aspecto1',
     ];
 
     // Relación inversa con User

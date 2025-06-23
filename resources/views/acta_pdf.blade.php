@@ -101,25 +101,44 @@ td {
     <h1>Acta de Calificaciones</h1>
     <h4>
         Grado: {{ $gradoFiltro ?? 'Todos' }} | Grupo: {{ $grupoFiltro ?? 'Todos' }} <br>
-        Periodo: {{ $periodoPersonalizado }}
         <br>
-        Fecha Inicio / Fin : {{ \Carbon\Carbon::parse($periodoInicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($periodoFin)->format('d/m/Y') }}
     </h4>
 
-    <div class="teacher-info">
-        <p><strong>Profesor:</strong> {{ $nombre_profesor }}</p>
-        <p><strong>Correo:</strong> {{ $correo }}</p>
-    </div>
-
+        <table class="grade-info" style="width:100%; margin-bottom:15px; font-size:13px;">
+        <tr>
+            <td style="vertical-align:top; width:50%;">
+                <p><strong>Lugar o Localidad:</strong> {{ $datosGenerales->localidad ?? '' }}</p>
+                <p><strong>Ciclo Escolar:</strong> {{ $datosGenerales->ciclo_escolar ?? '' }}</p>
+                <p><strong>Nombre y Clave de la Escuela:</strong> {{ $datosGenerales->nombre_y_clave ?? '' }}</p>
+                <p><strong>Turno:</strong> {{ $datosGenerales->turno ?? '' }}</p>
+            </td>
+            <td style="vertical-align:top; width:50%;">
+                <p><strong>Asignatura:</strong> {{ $datosGenerales->asignatura ?? '' }}</p>
+                <p><strong>Profesor:</strong> {{ $datosGenerales->nombre_profesor ?? '' }}</p>
+                <p><strong>Periodo:</strong> {{ $datosGenerales->periodo ?? '' }}</p>
+                <p><strong>Clave CT:</strong> {{ $datosGenerales->clave_ct ?? '' }}</p>
+            </td>
+        </tr>
+    </table>
     @foreach ($tipos as $index => $tipo)
-    <h3>Criterio {{ $loop->index + 1 }}</h3>
+       <h3>
+        Criterio {{ $loop->index + 1 }}
+        @if(!empty($etiquetasRubros[$tipo]))
+            : {{ $etiquetasRubros[$tipo] }}
+        @endif
+        @if(array_key_exists($tipo, $porcentaje))
+            {{ $porcentaje[$tipo] !== null ? $porcentaje[$tipo] : 0 }}%
+        @endif
+    </h3>
 
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Alumno</th>
                     @for ($i = 1; $i <= ($tipo == "apoyo_p" ? 5 : 3); $i++)
-                        <th>Evaluación {{ $i }}</th>
+                        <th>
+                            {{ $aspectos[$i][$tipo] ?? 'Aspecto ' . $i }}
+                        </th>
                     @endfor
                     <th>Calificación Final</th>
                     <th>Total (Entero)</th>
@@ -211,6 +230,8 @@ td {
 
         </tbody>
     </table>
+
+    
 
     <div class="footer">
         <p>Sistema de Gestión Escolar</p>

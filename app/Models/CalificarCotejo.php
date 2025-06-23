@@ -36,11 +36,9 @@ class CalificarCotejo extends Model
         'valor_maximo1',
         'valor_maximo2',
         'valor_maximo3',
-        'etiqueta_1',
-        'etiqueta_2',
-        'etiqueta_3',
-        'etiqueta_4',
-        'etiqueta_5',
+        'entregables_1',
+        'entregables_2',
+        'entregables_3',
     ];
 }
 

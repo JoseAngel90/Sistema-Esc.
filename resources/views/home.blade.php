@@ -60,6 +60,12 @@
     .btn:hover {
         transform: scale(1.05);
     }
+
+    .edit-form-scroll {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
 </style>
 
 <div class="container mt-4">
@@ -118,6 +124,18 @@
                                     maxlength="1"
                                     oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                             </div>
+                            <div class="form-group">
+                                <label for="periodo">Periodo</label>
+                                <input type="text" name="periodo" class="form-control" placeholder="Ejemplo: 2024-2025" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nombre_y_clave">Nombre y Clave de la Escuela</label>
+                                <input type="text" name="nombre_y_clave" class="form-control" placeholder="Ejemplo: Escuela Primaria - 12ABC1234Z" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="localidad">Localidad</label>
+                                <input type="text" name="localidad" class="form-control" placeholder="Ejemplo: Ciudad, Estado" required>
+                            </div>
                             <div class="d-flex justify-content-between">
                                 <button type="submit" class="btn btn-success mt-2">Guardar Grupo</button>
                                 <button type="button" class="btn btn-danger mt-2" id="cancelar">Cancelar</button>
@@ -144,11 +162,14 @@
                     <div class="card shadow-lg border-primary mb-3">
                         <div class="card-header bg-primary text-white">Datos del Grupo</div>
                         <div class="card-body text-primary">
-                            <p><strong>Escuela:</strong> {{ $datosGenerales->nombre_escuela }}</p>
+                            <p><strong>Lugar o Localidad:</strong> {{ $datosGenerales->localidad }}</p>
                             <p><strong>Ciclo Escolar:</strong> {{ $datosGenerales->ciclo_escolar }}</p>
+                            <p><strong>Nombre y Clave de la Escuela:</strong> {{ $datosGenerales->nombre_y_clave }}</p>
                             <p><strong>Turno:</strong> {{ $datosGenerales->turno }}</p>
                             <p><strong>Asignatura:</strong> {{ $datosGenerales->asignatura }}</p>
                             <p><strong>Profesor:</strong> {{ $datosGenerales->nombre_profesor }}</p>
+                            <p><strong>Periodo:</strong> {{ $datosGenerales->periodo }}</p>
+                            <p><strong>Clave CT:</strong> {{ $datosGenerales->clave_ct }}</p>
                             @if($datosGenerales->user_id == Auth::id())
                                 <button class="btn btn-warning" id="editButton">
                                     <i class="fas fa-edit"></i> Editar Datos
@@ -161,14 +182,11 @@
                         <div id="editForm" class="fade" style="display: none;">
                             <div class="card shadow-lg border-primary mb-3">
                                 <div class="card-header bg-warning text-white">Editar Datos Generales</div>
-                                <div class="card-body text-primary">
+                                <div class="card-body text-primary edit-form-scroll">
                                     <form action="{{ route('datosGenerales.store') }}" method="POST">
                                         @csrf
                                         @method('PUT')
-                                        <div class="form-group">
-                                            <label for="nombre_escuela">Nombre de la Escuela</label>
-                                            <input type="text" name="nombre_escuela" class="form-control" value="{{ $datosGenerales->nombre_escuela }}" required>
-                                        </div>
+                
                                         <div class="form-group">
                                             <label for="ciclo_escolar">Ciclo Escolar</label>
                                             <input type="text" name="ciclo_escolar" class="form-control" value="{{ $datosGenerales->ciclo_escolar }}" required>
@@ -185,6 +203,22 @@
                                             <label for="nombre_profesor">Nombre del Profesor</label>
                                             <input type="text" name="nombre_profesor" class="form-control" value="{{ $datosGenerales->nombre_profesor }}" required>
                                         </div>
+                                        <div class="form-group">
+                                            <label for="periodo">Periodo</label>
+                                            <input type="text" name="periodo" class="form-control" value="{{ $datosGenerales->periodo }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="nombre_y_clave">Nombre y Clave de la Escuela</label>
+                                            <input type="text" name="nombre_y_clave" class="form-control" value="{{ $datosGenerales->nombre_y_clave }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="localidad">Localidad</label>
+                                            <input type="text" name="localidad" class="form-control" value="{{ $datosGenerales->localidad }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="clave_ct">Clave CT</label>
+                                            <input type="text" name="clave_ct" class="form-control" value="{{ old('clave_ct', $datosGenerales->clave_ct ?? '') }}" required>
+                                        </div>
                                         <div class="d-flex justify-content-between">
                                             <button type="submit" class="btn btn-success mt-2">Actualizar Datos Generales</button>
                                             <button type="button" class="btn btn-danger mt-2" id="cancelButton">Cancelar</button>
@@ -200,10 +234,7 @@
                         <div class="card-body text-primary">
                             <form action="{{ route('datosGenerales.store') }}" method="POST">
                                 @csrf
-                                <div class="form-group">
-                                    <label for="nombre_escuela">Nombre de la Escuela</label>
-                                    <input type="text" name="nombre_escuela" class="form-control" placeholder="Ejemplo: Escuela Primaria" required>
-                                </div>
+                                
                                 <div class="form-group">
                                     <label for="ciclo_escolar">Ciclo Escolar</label>
                                     <input type="text" name="ciclo_escolar" class="form-control" placeholder="Ejemplo: 2024-2025" required>
@@ -219,6 +250,22 @@
                                 <div class="form-group">
                                     <label for="nombre_profesor">Nombre del Profesor</label>
                                     <input type="text" name="nombre_profesor" class="form-control" placeholder="Ejemplo: Juan Pérez" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="periodo">Periodo</label>
+                                    <input type="text" name="periodo" class="form-control" placeholder="Ejemplo: 2024-2025" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nombre_y_clave">Nombre y Clave de la Escuela</label>
+                                    <input type="text" name="nombre_y_clave" class="form-control" placeholder="Ejemplo: Escuela Primaria - 12ABC1234Z" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="localidad">Localidad</label>
+                                    <input type="text" name="localidad" class="form-control" placeholder="Ejemplo: Ciudad, Estado" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="clave_ct">Clave CT</label>
+                                    <input type="text" name="clave_ct" class="form-control" value="{{ $datosGenerales->clave_ct }}" required>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-success mt-2">Guardar Datos Generales</button>
@@ -246,7 +293,7 @@
 
                                     <div class="mt-3">
                                         <!-- Formulario para dar de baja -->
-                                        <form action="{{ route('grupos.destroy', $grupo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas dar de baja este grupo?')">
+                                        <form action="{{ route('grupos.destroy', $grupo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas dar de baja este grupo? Los alumnos de este grupo serán eliminados.')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm w-100">Dar de Baja</button>

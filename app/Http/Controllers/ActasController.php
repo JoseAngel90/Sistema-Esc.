@@ -110,8 +110,60 @@ class ActasController extends Controller
 
     $tipos = array_keys($pestanias);
 
+
+    $tipos = array_keys($pestanias);
+
+        $rubrosPorTipo = [
+        'apoyo_p' => 'rubro1',
+        'proyectos' => 'rubro2',
+        'trabajos_clase' => 'rubro3',
+        'tareas' => 'rubro4',
+        'examen' => 'rubro5',
+    ];
+
+    $etiquetasRubros = [];
+    foreach ($rubrosPorTipo as $tipo => $rubro) {
+        $etiqueta = DB::table('etiquetas_rubros')
+            ->where('user_id', $usuario->id)
+            ->where('grado', $gradoFiltro)
+            ->where('grupo', $grupoFiltro)
+            ->where('etiqueta_nombre', $rubro)
+            ->value('etiqueta_rubro');
+        $etiquetasRubros[$tipo] = $etiqueta;
+    }
+
+    $aspectos = [];
+    foreach ($rubrosPorTipo as $tipo => $rubro) {
+        $registro = DB::table('etiquetas_rubros')
+            ->where('user_id', $usuario->id)
+            ->where('grado', $gradoFiltro)
+            ->where('grupo', $grupoFiltro)
+            ->where('etiqueta_nombre', $rubro)
+            ->first();
+
+        for ($i = 1; $i <= 5; $i++) {
+            $aspectos[$i][$tipo] = $registro ? ($registro->{'etiqueta_aspecto'.$i} ?? null) : null;
+        }
+    }
+
+    $porcentaje = [];
+    foreach ($rubrosPorTipo as $tipo => $rubro) {
+        $valor = DB::table('calificaciones')
+            ->join('alumnos', 'alumnos.id', '=', 'calificaciones.alumno_id')
+            ->where('calificaciones.user_id', $usuario->id)
+            ->where('alumnos.grado', $gradoFiltro)
+            ->where('alumnos.grupo', $grupoFiltro)
+            ->avg("calificaciones.$rubro");
+        $porcentaje[$tipo] = $valor !== null ? round($valor, 2) : 0;
+    }
+
+
+
+    //dd($porcentaje); // Para depurar y ver los porcentajes obtenidos
+
     // Generar el PDF con la vista 'acta_pdf'
     $pdf = Pdf::loadView('acta_pdf', compact(
+        'etiquetasRubros',
         'alumnos',
         'calificacionesPorPestania',
         'tipos',
@@ -123,8 +175,11 @@ class ActasController extends Controller
         'criteriosPorTipo',
         'periodoInicio',
         'periodoFin',
-        'promedios', // Aquí pasas la variable $promedios a la vista
-        'periodoPersonalizado' 
+        'promedios', 
+        'periodoPersonalizado',
+        'aspectos',
+        'porcentaje',
+        'datosGenerales'
     ));
 
     return $pdf->download('acta_calificaciones_' . $gradoFiltro . '_' . $grupoFiltro . '_' . date('Y-m') .'.pdf');
@@ -132,36 +187,37 @@ class ActasController extends Controller
 
 
 
-    public function cerrarActa(Request $request)
-    {
-        $usuario = Auth::user();
+   public function cerrarActa(Request $request)
+{
+    $usuario = Auth::user();
 
-        if (!$usuario) {
-            return redirect()->route('login')->with('error', 'Debes iniciar sesión.');
-        }
-
-        $grado = $request->input('grado');
-        $grupo = $request->input('grupo');
-
-        $query = Alumno::where('user_id', $usuario->id);
-        if ($grado) $query->where('grado', $grado);
-        if ($grupo) $query->where('grupo', $grupo);
-
-        $alumnos = $query->pluck('id');
-
-        CalificarCotejo::whereIn('alumno_id', $alumnos)->where('user_id', $usuario->id)->update([
-            'evaluacion_1' => null,
-            'evaluacion_2' => null,
-            'evaluacion_3' => null,
-            'evaluacion_4' => null,
-            'evaluacion_5' => null,
-            'valor_maximo1' => null,
-            'valor_maximo2' => null,
-            'valor_maximo3' => null,
-            'Total' => null,
-        ]);
-
-        return redirect()->route('evaluacion', ['grado' => $grado, 'grupo' => $grupo])
-            ->with('success', 'El acta fue cerrada existosamente');
+    if (!$usuario) {
+        return redirect()->route('login')->with('error', 'Debes iniciar sesión.');
     }
+
+    $grado = $request->input('grado');
+    $grupo = $request->input('grupo');
+
+    $query = Alumno::where('user_id', $usuario->id);
+    if ($grado) $query->where('grado', $grado);
+    if ($grupo) $query->where('grupo', $grupo);
+
+    $alumnos = $query->pluck('id');
+
+    // Eliminar registros de CalificarCotejo
+    CalificarCotejo::whereIn('alumno_id', $alumnos)
+        ->where('user_id', $usuario->id)
+        ->delete();
+
+    // Eliminar registros de etiquetas_rubros
+    DB::table('etiquetas_rubros')
+        ->where('user_id', $usuario->id)
+        ->where('grado', $grado)
+        ->where('grupo', $grupo)
+        ->delete();
+
+    return redirect()->route('panel', ['grado' => $grado, 'grupo' => $grupo])
+        ->with('success', 'El acta fue cerrada y los datos eliminados exitosamente.');
 }
+}
+

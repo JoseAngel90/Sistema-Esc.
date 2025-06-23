@@ -14,8 +14,16 @@ class DatosGenerales extends Model
 
     // Definir los campos que se pueden llenar
     protected $fillable = [
-        'user_id', 'nombre_escuela', 'ciclo_escolar', 'turno', 'asignatura',
-        'grado_grupo', 'nombre_profesor', 'periodo'
+        'user_id', 
+        'nombre_escuela', 
+        'ciclo_escolar', 
+        'turno', 
+        'asignatura', 
+        'nombre_profesor', 
+        'periodo',
+        'nombre_y_clave',
+        'localidad',
+        'clave_ct'
     ];
 
     // Relación con el modelo de User

@@ -54,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Ruta para las evaluaciones
     
-Route::get('/404', [EvaluacionesController::class, 'index'])->name('erro.404');
+    //Route::get('/404', [EvaluacionesController::class, 'index'])->name('erro.404');
     Route::post('/guardar-calificaciones', [EvaluacionesController::class, 'guardarCalificaciones'])->name('guardar.calificaciones');
     Route::post('/guardar-periodos', [EvaluacionesController::class, 'guardarPeriodos'])->name('guardar.periodos');
 
@@ -93,6 +93,7 @@ Route::get('/404', [EvaluacionesController::class, 'index'])->name('erro.404');
     // Ruta para generar el PDF
     Route::get('/descargar-acta', [ActasController::class, 'descargarActa'])->name('descargar.acta');
     Route::post('/cerrar-acta', [ActasController::class, 'cerrarActa'])->name('cerrar.acta');
+
 
     // Ruta para guardar valores maximos
     Route::post('/guardar-elementos-correctos', [CalificarCotejoController::class, 'guardarElementosCorrectos'])->name('guardar.elementos.correctos');

@@ -87,7 +87,7 @@
 
         /* Asegurarse de que el logo en el navbar sea responsivo */
         #navbar img {
-            max-height: 60px;
+            max-height: 150px;
             width: auto;
         }
 
@@ -97,7 +97,7 @@
             padding-right: 15px;
         }
 
-        @media (max-width: 576px) {
+        @media (max-width: 565px) {
             .writing-loader .text {
                 font-size: 1.4rem;
             }

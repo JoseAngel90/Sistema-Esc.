@@ -28,6 +28,10 @@ class DatosGeneralesController extends Controller
             'turno' => 'required|string|max:255',
             'asignatura' => 'required|string|max:255',
             'nombre_profesor' => 'required|string|max:255',
+            'periodo' => 'required|string|max:255',
+            'nombre_y_clave' => 'required|string|max:255',
+            'localidad' => 'required|string|max:255',
+            'clave_ct' => 'required|string|max:255',
         ]);
     
         // Buscar si ya existe un registro para el usuario
@@ -35,20 +39,25 @@ class DatosGeneralesController extends Controller
     
         // Si no existe, lo creamos
         if (!$datosGenerales) {
-            DatosGenerales::create([
-                'nombre_escuela' => $request->nombre_escuela,
-                'ciclo_escolar' => $request->ciclo_escolar,
-                'turno' => $request->turno,
-                'asignatura' => $request->asignatura,
-                'nombre_profesor' => $request->nombre_profesor,
-                'user_id' => Auth::id(), // Asignar el ID del usuario autenticado
-            ]);
-            return redirect()->route('home')->with('success', 'Datos Generales guardados correctamente.');
-        } 
+        DatosGenerales::create([
+            'nombre_escuela' => $request->nombre_escuela,
+            'ciclo_escolar' => $request->ciclo_escolar,
+            'turno' => $request->turno,
+            'asignatura' => $request->asignatura,
+            'nombre_profesor' => $request->nombre_profesor,
+            'periodo' => $request->periodo,
+            'nombre_y_clave' => $request->nombre_y_clave,
+            'localidad' => $request->localidad,
+            'clave_ct' => $request->clave_ct,
+            'user_id' => Auth::id(),
+        ]);
+        return redirect()->route('home')->with('success', 'Datos Generales guardados correctamente.');
+    } 
     
         // Si el registro ya existe, actualizar los datos
         $datosGenerales->update($request->all());
-        return redirect()->route('home')->with('success', 'Datos Generales actualizados correctamente.');
+    return redirect()->route('home')->with('success', 'Datos Generales actualizados correctamente.');
+
     }
     
 
@@ -60,8 +69,13 @@ class DatosGeneralesController extends Controller
         'turno' => 'required|string|max:255',
         'asignatura' => 'required|string|max:255',
         'nombre_profesor' => 'required|string|max:255',
+        'periodo' => 'required|string|max:255',
+        'nombre_y_clave' => 'required|string|max:255',
+        'localidad' => 'required|string|max:255',
+        'clave_ct' => 'required|string|max:255',
     ]);
 
+    
     $datosGenerales = DatosGenerales::where('user_id', Auth::id())->first();
 
     if ($datosGenerales) {

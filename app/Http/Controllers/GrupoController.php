@@ -45,11 +45,24 @@ class GrupoController extends Controller
     public function destroy($id)
     {
         $grupo = Grupo::findOrFail($id);
+    
+        // Eliminar todos los alumnos asociados a este grupo usando grado y grupo
+        \App\Models\Alumno::where('grado', $grupo->grado)
+            ->where('grupo', $grupo->grupo)
+            ->delete();
+    
+        // Guardamos los datos antes de eliminar el grupo
+        $gradoEliminado = $grupo->grado;
+        $grupoEliminado = $grupo->grupo;
+    
         $grupo->delete();
-
+    
         // Guardamos en la sesión el id del grupo eliminado para poder restaurarlo
-        session()->flash('grupo_eliminado', $grupo->id);
-
-        return redirect()->route('home')->with('success', 'Grupo eliminado exitosamente.');
+        //session()->flash('grupo_eliminado', $grupo->id);
+    
+        return redirect()->route('home')->with(
+            'success',
+            "Grupo eliminado exitosamente. (Grupo: $grupoEliminado, Grado: $gradoEliminado)"
+        );
     }
 }

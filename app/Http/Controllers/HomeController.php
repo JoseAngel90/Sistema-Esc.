@@ -68,4 +68,6 @@ class HomeController extends Controller
 
         return back()->with('success', 'Grupo guardado exitosamente.');
     }
+
+   
 }
